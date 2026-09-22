@@ -1,21 +1,19 @@
 <!doctype html>
 <html lang="ja">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-
-<title>PB Editor v0.2</title>
-
-<link rel="stylesheet" href="style.css">
+  <meta charset="utf-8">
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"
+  >
+  <title>PB Editor v0.3</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
 <header>
-  <b>
-    PB Editor
-    <small>v0.2</small>
-  </b>
+  <b>PB Editor <small>v0.3</small></b>
 
   <div>
     <button id="undo">↶</button>
@@ -28,26 +26,23 @@
 
 <main>
 
-  <!-- プレビュー -->
   <section class="preview">
 
     <div id="wrap">
+
       <div id="stage">
 
-        <!-- スナップガイド -->
         <i id="gv"></i>
         <i id="gh"></i>
 
       </div>
+
     </div>
 
 
-    <!-- 再生 -->
     <div class="transport">
 
-      <button id="play">
-        ▶︎
-      </button>
+      <button id="play">▶︎</button>
 
       <span id="clock">
         00:00.00 / 00:10.00
@@ -59,7 +54,6 @@
         min="0"
         max="10"
         step=".01"
-        value="0"
       >
 
     </div>
@@ -67,7 +61,6 @@
   </section>
 
 
-  <!-- タイムライン -->
   <section class="timeline">
 
     <div class="tlhead">
@@ -95,207 +88,14 @@
 
   </section>
 
-
-  <!-- PIP詳細設定 -->
-  <aside id="inspector" hidden>
-
-    <div class="itop">
-
-      <b id="iname">
-        PIP
-      </b>
-
-      <button id="close">
-        ×
-      </button>
-
-    </div>
-
-
-    <!-- テキスト設定 -->
-    <div id="textPanel" hidden>
-
-      <label>
-        テキスト
-
-        <input
-          id="itext"
-          type="text"
-        >
-      </label>
-
-
-      <label>
-        文字サイズ
-
-        <input
-          id="ifs"
-          type="number"
-          min="8"
-          max="300"
-        >
-      </label>
-
-
-      <label>
-        文字色
-
-        <input
-          id="icolor"
-          type="color"
-        >
-      </label>
-
-    </div>
-
-
-    <!-- 動画PIP設定 -->
-    <div id="videoPanel" hidden>
-
-      <label>
-        動画音量 %
-
-        <input
-          id="ivol"
-          type="number"
-          min="0"
-          max="100"
-        >
-      </label>
-
-    </div>
-
-
-    <!-- 精密数値設定 -->
-    <div class="grid">
-
-      <label>
-        X
-        <input
-          id="ix"
-          type="number"
-          step=".1"
-        >
-      </label>
-
-
-      <label>
-        Y
-        <input
-          id="iy"
-          type="number"
-          step=".1"
-        >
-      </label>
-
-
-      <label>
-        幅
-        <input
-          id="iw"
-          type="number"
-          min="1"
-          step=".1"
-        >
-      </label>
-
-
-      <label>
-        高さ
-        <input
-          id="ih"
-          type="number"
-          min="1"
-          step=".1"
-        >
-      </label>
-
-
-      <label>
-        回転 °
-        <input
-          id="ir"
-          type="number"
-          step=".1"
-        >
-      </label>
-
-
-      <label>
-        透明度 %
-        <input
-          id="io"
-          type="number"
-          min="0"
-          max="100"
-        >
-      </label>
-
-
-      <label>
-        開始 秒
-        <input
-          id="is"
-          type="number"
-          min="0"
-          step=".01"
-        >
-      </label>
-
-
-      <label>
-        終了 秒
-        <input
-          id="ie"
-          type="number"
-          min="0"
-          step=".01"
-        >
-      </label>
-
-    </div>
-
-
-    <!-- PIP操作 -->
-    <div class="actions">
-
-      <button id="key">
-        ◇ キー
-      </button>
-
-      <button id="anim">
-        アニメ
-      </button>
-
-      <button id="front">
-        最前面
-      </button>
-
-      <button id="back">
-        最背面
-      </button>
-
-      <button id="dup">
-        複製
-      </button>
-
-      <button id="del">
-        削除
-      </button>
-
-    </div>
-
-  </aside>
-
 </main>
 
 
-<!-- 下部ツール -->
-<nav>
+<nav id="mainTools">
 
   <label class="btn">
 
-    ＋ PIP
+    ＋PIP
 
     <input
       id="files"
@@ -307,21 +107,9 @@
 
   </label>
 
-
-  <button id="text">
+  <button id="addText">
     文字
   </button>
-
-
-  <button id="center">
-    中央
-  </button>
-
-
-  <button id="fit">
-    フィット
-  </button>
-
 
   <button id="aspect">
     9:16
@@ -330,11 +118,165 @@
 </nav>
 
 
-<!-- メッセージ表示 -->
+<div id="selectionBar" hidden>
+
+  <button data-act="edit">
+    詳細
+  </button>
+
+  <button data-act="key">
+    ◇キー
+  </button>
+
+  <button data-act="anim">
+    アニメ
+  </button>
+
+  <button data-act="center">
+    中央
+  </button>
+
+  <button data-act="dup">
+    複製
+  </button>
+
+  <button data-act="del">
+    削除
+  </button>
+
+</div>
+
+
+<aside id="panel" hidden>
+
+  <div class="top">
+
+    <b id="pname"></b>
+
+    <button id="close">
+      ×
+    </button>
+
+  </div>
+
+
+  <div id="textOpts" hidden>
+
+    <label>
+      文字
+      <input id="txt">
+    </label>
+
+    <label>
+      サイズ
+      <input id="fs" type="number">
+    </label>
+
+    <label>
+      色
+      <input id="color" type="color">
+    </label>
+
+  </div>
+
+
+  <div class="grid">
+
+    <label>
+      X
+      <input id="x" type="number" step=".1">
+    </label>
+
+    <label>
+      Y
+      <input id="y" type="number" step=".1">
+    </label>
+
+    <label>
+      幅
+      <input id="w" type="number">
+    </label>
+
+    <label>
+      高さ
+      <input id="h" type="number">
+    </label>
+
+    <label>
+      回転
+      <input id="r" type="number" step=".1">
+    </label>
+
+    <label>
+      透明度
+      <input id="o" type="number">
+    </label>
+
+    <label>
+      開始
+      <input id="start" type="number" step=".01">
+    </label>
+
+    <label>
+      終了
+      <input id="end" type="number" step=".01">
+    </label>
+
+    <label>
+      イージング
+
+      <select id="ease">
+        <option>linear</option>
+        <option>ease</option>
+        <option>in</option>
+        <option>out</option>
+        <option>back</option>
+      </select>
+
+    </label>
+
+  </div>
+
+</aside>
+
+
+<div id="animSheet" hidden>
+
+  <b>アニメーション</b>
+
+  <div>
+
+    <button data-a="pop">
+      ポップ
+    </button>
+
+    <button data-a="slide">
+      スライド
+    </button>
+
+    <button data-a="bounce">
+      バウンド
+    </button>
+
+    <button data-a="shake">
+      震える
+    </button>
+
+    <button data-a="squash">
+      ぷるん
+    </button>
+
+  </div>
+
+  <button id="animClose">
+    閉じる
+  </button>
+
+</div>
+
+
 <div id="toast"></div>
 
-
-<!-- 編集処理 -->
 <script src="app.js"></script>
 
 </body>
