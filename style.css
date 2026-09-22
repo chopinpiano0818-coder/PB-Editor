@@ -1,0 +1,568 @@
+/* ========================================
+   PB Editor v0.1
+   style.css
+======================================== */
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+
+  background: #0d0f13;
+  color: #f5f6f7;
+
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+}
+
+
+/* ========================================
+   ボタン
+======================================== */
+
+button,
+.btn,
+input {
+  font: inherit;
+}
+
+button,
+.btn {
+  border: 0;
+  border-radius: 9px;
+
+  background: #252a33;
+  color: white;
+
+  padding: 9px 12px;
+
+  cursor: pointer;
+}
+
+button:active,
+.btn:active {
+  transform: scale(0.97);
+}
+
+
+/* ========================================
+   上部バー
+======================================== */
+
+header {
+  height: 52px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 0 12px;
+
+  background: #111318;
+
+  border-bottom: 1px solid #292e37;
+}
+
+header span {
+  display: flex;
+  gap: 6px;
+}
+
+header small {
+  color: #9da5b2;
+}
+
+
+/* ========================================
+   メイン画面
+======================================== */
+
+main {
+  height: calc(100dvh - 113px);
+
+  display: flex;
+  flex-direction: column;
+
+  position: relative;
+}
+
+
+/* ========================================
+   プレビュー
+======================================== */
+
+.preview {
+  min-height: 0;
+
+  flex: 1;
+
+  display: flex;
+  flex-direction: column;
+}
+
+#wrap {
+  min-height: 0;
+
+  flex: 1;
+
+  display: grid;
+  place-items: center;
+
+  padding: 9px;
+
+  background: #08090c;
+}
+
+
+/* ========================================
+   動画キャンバス
+======================================== */
+
+#stage {
+  position: relative;
+
+  width: min(42.2vh, 92vw);
+
+  aspect-ratio: 9 / 16;
+
+  background: white;
+
+  overflow: hidden;
+
+  touch-action: none;
+
+  box-shadow:
+    0 0 0 1px #343a45;
+}
+
+
+/* ========================================
+   PIP
+======================================== */
+
+.pip {
+  position: absolute;
+
+  left: 0;
+  top: 0;
+
+  transform-origin: center center;
+
+  user-select: none;
+
+  touch-action: none;
+}
+
+.pip img {
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
+
+  pointer-events: none;
+}
+
+
+/* 文字PIP */
+
+.pip.txt {
+  display: grid;
+
+  place-items: center;
+
+  color: #111;
+
+  font-size: 32px;
+  font-weight: 800;
+
+  white-space: nowrap;
+}
+
+
+/* 選択中 */
+
+.pip.sel {
+  outline: 2px solid #58a6ff;
+
+  outline-offset: 2px;
+}
+
+
+/* ========================================
+   スナップ用ガイド
+======================================== */
+
+#gv,
+#gh {
+  position: absolute;
+
+  background: #ff4da6;
+
+  z-index: 9999;
+
+  display: none;
+
+  pointer-events: none;
+}
+
+
+/* 縦 */
+
+#gv {
+  top: 0;
+  bottom: 0;
+
+  width: 1px;
+
+  left: 50%;
+}
+
+
+/* 横 */
+
+#gh {
+  left: 0;
+  right: 0;
+
+  height: 1px;
+
+  top: 50%;
+}
+
+
+/* ========================================
+   再生バー
+======================================== */
+
+.transport {
+  height: 45px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 8px;
+
+  padding: 5px 9px;
+
+  background: #171a20;
+}
+
+.transport span {
+  font-size: 11px;
+
+  font-variant-numeric: tabular-nums;
+
+  white-space: nowrap;
+}
+
+.transport input {
+  min-width: 0;
+
+  flex: 1;
+}
+
+#play {
+  min-width: 42px;
+}
+
+
+/* ========================================
+   タイムライン
+======================================== */
+
+.timeline {
+  height: 145px;
+
+  background: #12151a;
+
+  border-top: 1px solid #292e37;
+
+  padding: 7px;
+
+  overflow: auto;
+}
+
+.tlhead {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  font-size: 12px;
+
+  color: #9da5b2;
+
+  margin-bottom: 6px;
+}
+
+.tlhead input {
+  width: 55px;
+
+  background: #222730;
+
+  color: white;
+
+  border: 1px solid #39404c;
+
+  border-radius: 5px;
+}
+
+
+/* ========================================
+   タイムライントラック
+======================================== */
+
+.track {
+  position: relative;
+
+  height: 31px;
+
+  margin-bottom: 5px;
+
+  background: #1c2027;
+
+  border-radius: 6px;
+
+  overflow: hidden;
+}
+
+.clip {
+  position: absolute;
+
+  height: 100%;
+
+  padding: 6px;
+
+  background: #38414f;
+
+  border: 1px solid #6c7889;
+
+  border-radius: 6px;
+
+  font-size: 11px;
+
+  overflow: hidden;
+
+  white-space: nowrap;
+}
+
+.clip.sel {
+  outline: 2px solid #58a6ff;
+
+  outline-offset: -2px;
+}
+
+
+/* ========================================
+   数値設定パネル
+======================================== */
+
+#inspector {
+  position: absolute;
+
+  right: 8px;
+  top: 8px;
+
+  width: min(
+    360px,
+    calc(100vw - 16px)
+  );
+
+  z-index: 10000;
+
+  padding: 10px;
+
+  background: #181c22;
+
+  border: 1px solid #3a414d;
+
+  border-radius: 12px;
+
+  box-shadow:
+    0 12px 40px #0008;
+}
+
+
+/* hidden属性 */
+
+#inspector[hidden] {
+  display: none;
+}
+
+
+/* ========================================
+   インスペクター上部
+======================================== */
+
+.itop {
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  margin-bottom: 8px;
+}
+
+
+/* ========================================
+   数値入力グリッド
+======================================== */
+
+.grid {
+  display: grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap: 7px;
+}
+
+.grid label {
+  font-size: 11px;
+
+  color: #9da5b2;
+}
+
+.grid input {
+  display: block;
+
+  width: 100%;
+
+  margin-top: 3px;
+
+  padding: 7px;
+
+  background: #0f1217;
+
+  color: white;
+
+  border:
+    1px solid #3b424d;
+
+  border-radius: 6px;
+}
+
+
+/* ========================================
+   PIP操作ボタン
+======================================== */
+
+.actions {
+  display: flex;
+
+  gap: 5px;
+
+  margin-top: 9px;
+}
+
+.actions button {
+  flex: 1;
+
+  padding: 8px 4px;
+}
+
+#del {
+  background: #56232a;
+}
+
+
+/* ========================================
+   下部ツールバー
+======================================== */
+
+nav {
+  height: 61px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  padding: 8px;
+
+  background: #15181e;
+
+  border-top:
+    1px solid #292e37;
+
+  overflow-x: auto;
+
+  -webkit-overflow-scrolling: touch;
+}
+
+nav > * {
+  white-space: nowrap;
+
+  flex-shrink: 0;
+}
+
+
+/* ========================================
+   iPad 横向き
+======================================== */
+
+@media (orientation: landscape) {
+
+  main {
+    flex-direction: row;
+  }
+
+  .preview {
+    flex: 1;
+  }
+
+  .timeline {
+    width: 42%;
+
+    height: auto;
+  }
+
+  #stage {
+    height:
+      min(
+        62vh,
+        calc(100vw * 0.44)
+      );
+
+    width: auto;
+  }
+
+}
+
+
+/* ========================================
+   小さい画面
+======================================== */
+
+@media (max-width: 500px) {
+
+  .timeline {
+    height: 125px;
+  }
+
+  .grid {
+    gap: 5px;
+  }
+
+  button,
+  .btn {
+    padding:
+      8px 10px;
+  }
+
+}
