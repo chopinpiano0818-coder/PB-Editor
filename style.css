@@ -3,7 +3,6 @@
   -webkit-tap-highlight-color: transparent;
 }
 
-
 html,
 body {
   margin: 0;
@@ -20,40 +19,26 @@ body {
     sans-serif;
 }
 
-
-/* =========================
-   ボタン
-========================= */
-
 button,
 .btn,
-input {
+input,
+select {
   font: inherit;
 }
-
 
 button,
 .btn {
   border: 0;
-
   border-radius: 9px;
 
   background: #252a33;
   color: #fff;
 
-  padding: 9px 12px;
+  padding: 9px 11px;
 }
 
 
-button:active,
-.btn:active {
-  transform: scale(0.97);
-}
-
-
-/* =========================
-   ヘッダー
-========================= */
+/* ヘッダー */
 
 header {
   height: 52px;
@@ -65,46 +50,33 @@ header {
   padding: 0 10px;
 
   background: #111318;
-
-  border-bottom:
-    1px solid #292e37;
 }
-
 
 header div {
   display: flex;
   gap: 5px;
 }
 
-
 header button {
   padding: 7px 9px;
 }
-
 
 small {
   color: #9da5b2;
 }
 
 
-/* =========================
-   メイン
-========================= */
+/* メイン */
 
 main {
-  height:
-    calc(100dvh - 113px);
+  height: calc(100dvh - 113px);
 
   display: flex;
   flex-direction: column;
-
-  position: relative;
 }
 
 
-/* =========================
-   プレビュー
-========================= */
+/* プレビュー */
 
 .preview {
   min-height: 0;
@@ -115,7 +87,6 @@ main {
   flex-direction: column;
 }
 
-
 #wrap {
   min-height: 0;
 
@@ -124,21 +95,18 @@ main {
   display: grid;
   place-items: center;
 
-  padding: 9px;
+  padding: 8px;
 
   background: #08090c;
 }
 
 
-/* =========================
-   編集キャンバス
-========================= */
+/* 編集画面 */
 
 #stage {
   position: relative;
 
-  width:
-    min(42.2vh, 92vw);
+  width: min(42.2vh, 92vw);
 
   aspect-ratio: 9 / 16;
 
@@ -150,9 +118,7 @@ main {
 }
 
 
-/* =========================
-   PIP
-========================= */
+/* PIP */
 
 .pip {
   position: absolute;
@@ -163,10 +129,12 @@ main {
   transform-origin: center;
 
   user-select: none;
-
   touch-action: none;
-}
 
+  will-change:
+    transform,
+    opacity;
+}
 
 .pip img,
 .pip video {
@@ -180,10 +148,7 @@ main {
   pointer-events: none;
 }
 
-
-/* テキストPIP */
-
-.pip.txt {
+.pip.text {
   display: grid;
 
   place-items: center;
@@ -193,20 +158,12 @@ main {
   white-space: nowrap;
 }
 
-
-/* 選択中 */
-
-.pip.sel {
-  outline:
-    2px solid #58a6ff;
-
-  outline-offset: 2px;
+.pip.selected {
+  outline: 2px solid #58a6ff;
 }
 
 
-/* =========================
-   スナップガイド
-========================= */
+/* ガイド線 */
 
 #gv,
 #gh {
@@ -214,65 +171,48 @@ main {
 
   background: #ff4da6;
 
-  z-index: 9999;
+  z-index: 999;
 
   display: none;
-
-  pointer-events: none;
 }
 
-
-/* 縦線 */
-
 #gv {
+  left: 50%;
   top: 0;
   bottom: 0;
 
   width: 1px;
-
-  left: 50%;
 }
 
-
-/* 横線 */
-
 #gh {
+  top: 50%;
   left: 0;
   right: 0;
 
   height: 1px;
-
-  top: 50%;
 }
 
 
-/* =========================
-   再生バー
-========================= */
+/* 再生バー */
 
 .transport {
-  height: 45px;
+  height: 44px;
 
   display: flex;
-  gap: 8px;
-
   align-items: center;
 
-  padding: 5px 9px;
+  gap: 7px;
+
+  padding: 5px 8px;
 
   background: #171a20;
 }
 
-
 .transport span {
   font-size: 11px;
 
-  font-variant-numeric:
-    tabular-nums;
-
   white-space: nowrap;
 }
-
 
 .transport input {
   min-width: 0;
@@ -281,29 +221,22 @@ main {
 }
 
 
-/* =========================
-   タイムライン
-========================= */
+/* タイムライン */
 
 .timeline {
-  height: 145px;
-
-  background: #12151a;
-
-  border-top:
-    1px solid #292e37;
+  height: 140px;
 
   padding: 7px;
+
+  background: #12151a;
 
   overflow: auto;
 }
 
-
 .tlhead {
   display: flex;
 
-  justify-content:
-    space-between;
+  justify-content: space-between;
 
   font-size: 12px;
 
@@ -312,13 +245,9 @@ main {
   margin-bottom: 6px;
 }
 
-
 .tlhead input {
   width: 55px;
 }
-
-
-/* トラック */
 
 .track {
   height: 31px;
@@ -330,12 +259,7 @@ main {
   margin-bottom: 5px;
 
   position: relative;
-
-  overflow: hidden;
 }
-
-
-/* クリップ */
 
 .clip {
   position: absolute;
@@ -344,8 +268,7 @@ main {
 
   background: #38414f;
 
-  border:
-    1px solid #6c7889;
+  border: 1px solid #6c7889;
 
   border-radius: 6px;
 
@@ -354,151 +277,17 @@ main {
   font-size: 11px;
 
   overflow: hidden;
+}
 
-  white-space: nowrap;
+.clip.selected {
+  outline: 2px solid #58a6ff;
 }
 
 
-.clip.sel {
-  outline:
-    2px solid #58a6ff;
+/* 下部ツール */
 
-  outline-offset: -2px;
-}
-
-
-/* =========================
-   詳細設定
-========================= */
-
-aside {
-  position: absolute;
-
-  right: 8px;
-  top: 8px;
-
-  width:
-    min(
-      390px,
-      calc(100vw - 16px)
-    );
-
-  max-height:
-    calc(100% - 16px);
-
-  overflow: auto;
-
-  z-index: 10000;
-
-  background: #181c22;
-
-  border:
-    1px solid #3a414d;
-
-  border-radius: 12px;
-
-  padding: 10px;
-
-  box-shadow:
-    0 12px 40px #0008;
-}
-
-
-/* 詳細画面上部 */
-
-.itop {
-  display: flex;
-
-  justify-content:
-    space-between;
-
-  align-items: center;
-}
-
-
-/* =========================
-   設定グリッド
-========================= */
-
-.grid,
-#textPanel,
-#videoPanel {
-  display: grid;
-
-  grid-template-columns:
-    1fr 1fr;
-
-  gap: 7px;
-
-  margin-top: 7px;
-}
-
-
-.grid label,
-#textPanel label,
-#videoPanel label {
-  font-size: 11px;
-
-  color: #9da5b2;
-}
-
-
-.grid input,
-#textPanel input,
-#videoPanel input {
-  display: block;
-
-  width: 100%;
-
-  margin-top: 3px;
-
-  padding: 7px;
-
-  background: #0f1217;
-
-  color: #fff;
-
-  border:
-    1px solid #3b424d;
-
-  border-radius: 6px;
-}
-
-
-/* =========================
-   PIP操作
-========================= */
-
-.actions {
-  display: flex;
-
-  gap: 5px;
-
-  flex-wrap: wrap;
-
-  margin-top: 9px;
-}
-
-
-.actions button {
-  flex: 1;
-
-  min-width: 85px;
-
-  padding: 8px 4px;
-}
-
-
-#del {
-  background: #56232a;
-}
-
-
-/* =========================
-   下部ツールバー
-========================= */
-
-nav {
+nav,
+#selectionBar {
   height: 61px;
 
   display: flex;
@@ -511,26 +300,123 @@ nav {
 
   background: #15181e;
 
-  border-top:
-    1px solid #292e37;
-
   overflow-x: auto;
+}
 
-  -webkit-overflow-scrolling:
-    touch;
+#selectionBar {
+  position: fixed;
+
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  z-index: 900;
 }
 
 
-nav > * {
-  white-space: nowrap;
+/* 詳細設定 */
 
-  flex-shrink: 0;
+aside {
+  position: fixed;
+
+  right: 8px;
+  bottom: 70px;
+
+  width:
+    min(
+      390px,
+      calc(100vw - 16px)
+    );
+
+  max-height: 65vh;
+
+  overflow: auto;
+
+  z-index: 1000;
+
+  background: #181c22;
+
+  border: 1px solid #3a414d;
+
+  border-radius: 12px;
+
+  padding: 10px;
+}
+
+.top {
+  display: flex;
+
+  justify-content: space-between;
+}
+
+.grid,
+#textOpts {
+  display: grid;
+
+  grid-template-columns:
+    1fr 1fr;
+
+  gap: 7px;
+
+  margin-top: 8px;
+}
+
+.grid label,
+#textOpts label {
+  font-size: 11px;
+
+  color: #9da5b2;
+}
+
+.grid input,
+.grid select,
+#textOpts input {
+  display: block;
+
+  width: 100%;
+
+  padding: 7px;
+
+  background: #0f1217;
+
+  color: #fff;
+
+  border: 1px solid #3b424d;
+
+  border-radius: 6px;
 }
 
 
-/* =========================
-   通知
-========================= */
+/* アニメーション */
+
+#animSheet {
+  position: fixed;
+
+  left: 8px;
+  right: 8px;
+  bottom: 70px;
+
+  z-index: 1100;
+
+  background: #181c22;
+
+  border-radius: 13px;
+
+  padding: 12px;
+}
+
+#animSheet div {
+  display: flex;
+
+  gap: 7px;
+
+  overflow: auto;
+
+  margin: 10px 0;
+}
+
+
+/* 通知 */
 
 #toast {
   position: fixed;
@@ -543,41 +429,32 @@ nav > * {
 
   background: #111e;
 
-  color: #fff;
-
   padding: 9px 14px;
 
   border-radius: 9px;
 
   display: none;
 
-  z-index: 99999;
+  z-index: 2000;
 }
 
 
-/* =========================
-   iPad横向き
-========================= */
+/* iPad横向き */
 
-@media
-(orientation: landscape) {
+@media (orientation: landscape) {
 
   main {
     flex-direction: row;
   }
 
-
   .preview {
     flex: 1;
   }
 
-
   .timeline {
-    width: 42%;
-
+    width: 40%;
     height: auto;
   }
-
 
   #stage {
     height:
@@ -588,5 +465,4 @@ nav > * {
 
     width: auto;
   }
-
 }
