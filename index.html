@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta
+    name="viewport"
+    content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"
+  >
+
+  <title>PB Editor v0.1</title>
+
+  <!-- 見た目は style.css から読み込む -->
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- =========================
+       上部バー
+  ========================== -->
+  <header>
+    <b>
+      PB Editor
+      <small>v0.1</small>
+    </b>
+
+    <span>
+      <button id="undo">↶</button>
+      <button id="redo">↷</button>
+      <button id="save">保存</button>
+    </span>
+  </header>
+
+
+  <!-- =========================
+       メイン編集画面
+  ========================== -->
+  <main>
+
+    <!-- プレビュー -->
+    <section class="preview">
+
+      <div id="wrap">
+
+        <!--
+          実際に動画を作るキャンバス
+          PIPや文字はJavaScriptからここに追加される
+        -->
+        <div id="stage">
+
+          <!-- スナップ用ガイド線 -->
+          <i id="gv"></i>
+          <i id="gh"></i>
+
+        </div>
+
+      </div>
+
+
+      <!-- 再生コントロール -->
+      <div class="transport">
+
+        <button id="play">
+          ▶︎
+        </button>
+
+        <span id="clock">
+          00:00.00 / 00:10.00
+        </span>
+
+        <input
+          id="seek"
+          type="range"
+          min="0"
+          max="10"
+          step=".01"
+          value="0"
+        >
+
+      </div>
+
+    </section>
+
+
+    <!-- =========================
+         タイムライン
+    ========================== -->
+    <section class="timeline">
+
+      <div class="tlhead">
+
+        <span>
+          タイムライン
+        </span>
+
+        <label>
+          長さ
+
+          <input
+            id="duration"
+            type="number"
+            value="10"
+            min="1"
+            max="600"
+            step=".1"
+          >
+
+          秒
+        </label>
+
+      </div>
+
+      <!--
+        PIPなどのトラックが
+        JavaScriptからここに追加される
+      -->
+      <div id="tracks"></div>
+
+    </section>
+
+
+    <!-- =========================
+         PIP 詳細設定
+    ========================== -->
+    <aside id="inspector" hidden>
+
+      <div class="itop">
+
+        <b id="iname">
+          PIP
+        </b>
+
+        <button id="close">
+          ×
+        </button>
+
+      </div>
+
+
+      <!-- 数値入力 -->
+      <div class="grid">
+
+        <label>
+          X
+          <input
+            id="ix"
+            type="number"
+            step="1"
+          >
+        </label>
+
+
+        <label>
+          Y
+          <input
+            id="iy"
+            type="number"
+            step="1"
+          >
+        </label>
+
+
+        <label>
+          幅
+          <input
+            id="iw"
+            type="number"
+            min="1"
+            step="1"
+          >
+        </label>
+
+
+        <label>
+          高さ
+          <input
+            id="ih"
+            type="number"
+            min="1"
+            step="1"
+          >
+        </label>
+
+
+        <label>
+          回転 °
+          <input
+            id="ir"
+            type="number"
+            step=".1"
+          >
+        </label>
+
+
+        <label>
+          透明度 %
+          <input
+            id="io"
+            type="number"
+            min="0"
+            max="100"
+            step="1"
+          >
+        </label>
+
+
+        <label>
+          開始 秒
+          <input
+            id="is"
+            type="number"
+            min="0"
+            step=".01"
+          >
+        </label>
+
+
+        <label>
+          終了 秒
+          <input
+            id="ie"
+            type="number"
+            min="0"
+            step=".01"
+          >
+        </label>
+
+      </div>
+
+
+      <!-- レイヤー操作 -->
+      <div class="actions">
+
+        <button id="front">
+          最前面
+        </button>
+
+        <button id="back">
+          最背面
+        </button>
+
+        <button id="dup">
+          複製
+        </button>
+
+        <button id="del">
+          削除
+        </button>
+
+      </div>
+
+    </aside>
+
+  </main>
+
+
+  <!-- =========================
+       下部ツールバー
+  ========================== -->
+  <nav>
+
+    <!-- PIP画像追加 -->
+    <label class="btn">
+
+      ＋ PIP
+
+      <input
+        id="files"
+        type="file"
+        accept="image/*,.svg"
+        multiple
+        hidden
+      >
+
+    </label>
+
+
+    <!-- 文字追加 -->
+    <button id="text">
+      文字
+    </button>
+
+
+    <!-- 選択したPIPを中央へ -->
+    <button id="center">
+      中央
+    </button>
+
+
+    <!-- 選択したPIPを画面内にフィット -->
+    <button id="fit">
+      フィット
+    </button>
+
+
+    <!-- 9:16 / 16:9切替 -->
+    <button id="aspect">
+      9:16
+    </button>
+
+  </nav>
+
+
+  <!--
+    編集機能本体。
+    index.html と同じ場所に
+    app.js を置く。
+  -->
+  <script src="app.js"></script>
+
+</body>
+</html>
