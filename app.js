@@ -15,26 +15,27 @@
 
     selected: null,
 
-    undo: [],
-    redo: [],
+    playing: false,
 
-    playing: false
+    undo: [],
+    redo: []
   };
 
 
-  /*
-   * v0.3ではPIPのDOMを毎フレーム作り直さない。
-   * ここがv0.2からの大きな軽量化ポイント。
-   */
+  // ============================
+  // 軽量化用
+  // ============================
 
-  const E = new Map();
-
+  const D = new Map();
   const P = new Map();
 
   let G = null;
-
   let last = 0;
 
+
+  // ============================
+  // 基本
+  // ============================
 
   const uid = () =>
     Math.random()
@@ -48,11 +49,17 @@
     );
 
 
-  const cp = o =>
-    JSON.parse(
-      JSON.stringify(o)
-    );
+  const snapshot = () =>
+    JSON.stringify({
+      duration: S.duration,
+      aspect: S.aspect,
+      items: S.items
+    });
 
+
+  // ============================
+  // Toast
+  // ============================
 
   function toast(text) {
 
@@ -60,36 +67,30 @@
 
     e.textContent = text;
 
-    e.style.display =
-      "block";
+    e.style.display = "block";
 
-    setTimeout(() => {
+    clearTimeout(toast.t);
 
-      e.style.display =
-        "none";
+    toast.t = setTimeout(
+      () => {
 
-    }, 1000);
+        e.style.display = "none";
+
+      },
+      1200
+    );
 
   }
 
 
-  /* ======================
-     Undo履歴
-  ====================== */
+  // ============================
+  // Undo履歴
+  // ============================
 
   function hist() {
 
     S.undo.push(
-      JSON.stringify({
-        duration:
-          S.duration,
-
-        aspect:
-          S.aspect,
-
-        items:
-          S.items
-      })
+      snapshot()
     );
 
     if (
@@ -105,28 +106,21 @@
   }
 
 
-  /* ======================
-     保存
-  ====================== */
+  // ============================
+  // 保存
+  // ============================
 
-  function save(show = 0) {
+  function save(
+    show = false
+  ) {
 
     try {
 
       localStorage.setItem(
-        "pb-v03",
-
-        JSON.stringify({
-          duration:
-            S.duration,
-
-          aspect:
-            S.aspect,
-
-          items:
-            S.items
-        })
+        "pb-v1",
+        snapshot()
       );
+
 
       if (show) {
 
@@ -153,15 +147,22 @@
 
     try {
 
-      Object.assign(
-        S,
-
+      const data =
         JSON.parse(
           localStorage.getItem(
-            "pb-v03"
+            "pb-v1"
           )
-        ) || {}
-      );
+        );
+
+
+      if (data) {
+
+        Object.assign(
+          S,
+          data
+        );
+
+      }
 
     }
 
@@ -170,185 +171,41 @@
   }
 
 
-  /* ======================
-     イージング
-  ====================== */
+  // ============================
+  // 時間表示
+  // ============================
 
-  function ease(
-    u,
-    type
-  ) {
+  function fmt(t) {
 
-    if (
-      type === "linear"
-    ) {
-
-      return u;
-
-    }
-
-
-    if (
-      type === "in"
-    ) {
-
-      return u * u;
-
-    }
-
-
-    if (
-      type === "out"
-    ) {
-
-      return (
-        1 -
-        (1 - u) ** 2
+    const m =
+      Math.floor(
+        t / 60
       );
 
-    }
+
+    const s =
+      t % 60;
 
 
     return (
-      u *
-      u *
-      (3 - 2 * u)
+      String(m)
+        .padStart(2, "0")
+      +
+      ":"
+      +
+      s
+        .toFixed(2)
+        .padStart(5, "0")
     );
 
   }
 
 
-  /* ======================
-     キーフレーム値
-  ====================== */
+  // ============================
+  // レイヤーDOM生成
+  // ============================
 
-  function val(
-    item,
-    time
-  ) {
-
-    const keys =
-      [
-        ...(item.keys || [])
-      ].sort(
-        (a, b) =>
-          a.t - b.t
-      );
-
-
-    if (
-      !keys.length
-    ) {
-
-      return item;
-
-    }
-
-
-    if (
-      time <= keys[0].t
-    ) {
-
-      return {
-        ...item,
-        ...keys[0]
-      };
-
-    }
-
-
-    if (
-      time >=
-      keys.at(-1).t
-    ) {
-
-      return {
-        ...item,
-        ...keys.at(-1)
-      };
-
-    }
-
-
-    let a;
-    let b;
-
-
-    for (
-      let i = 0;
-      i < keys.length - 1;
-      i++
-    ) {
-
-      if (
-        time >= keys[i].t &&
-        time <= keys[i + 1].t
-      ) {
-
-        a = keys[i];
-        b = keys[i + 1];
-
-        break;
-
-      }
-
-    }
-
-
-    let u =
-      (
-        time - a.t
-      ) /
-      (
-        b.t - a.t
-      );
-
-
-    u = ease(
-      u,
-      a.ease
-    );
-
-
-    const out = {
-      ...item
-    };
-
-
-    [
-      "x",
-      "y",
-      "w",
-      "h",
-      "r",
-      "o"
-    ].forEach(
-      name => {
-
-        out[name] =
-          a[name] +
-          (
-            b[name] -
-            a[name]
-          ) *
-          u;
-
-      }
-    );
-
-
-    return out;
-
-  }
-
-
-  /* ======================
-     PIP DOM生成
-  ====================== */
-
-  function makeElement(
-    item
-  ) {
+  function make(item) {
 
     const e =
       document.createElement(
@@ -357,12 +214,8 @@
 
 
     e.className =
-      "pip " +
-      (
-        item.type === "text"
-          ? "text"
-          : ""
-      );
+      "layer " +
+      item.type;
 
 
     e.dataset.id =
@@ -370,46 +223,51 @@
 
 
     if (
-      item.type === "image"
-    ) {
-
-      const image =
-        new Image();
-
-      image.src =
-        item.src;
-
-      e.append(image);
-
-    }
-
-
-    else if (
+      item.type === "image" ||
       item.type === "video"
     ) {
 
-      const video =
+      const media =
         document.createElement(
-          "video"
+          item.type === "video"
+            ? "video"
+            : "img"
         );
 
-      video.src =
+
+      media.src =
         item.src;
 
-      video.muted =
-        true;
 
-      video.playsInline =
-        true;
+      if (
+        item.type === "video"
+      ) {
 
-      e.append(video);
+        media.playsInline =
+          true;
+
+        media.muted =
+          true;
+
+        media.preload =
+          "metadata";
+
+      }
+
+
+      e.append(
+        media
+      );
 
     }
 
 
-    stage.append(e);
+    stage.append(
+      e
+    );
 
-    E.set(
+
+    D.set(
       item.id,
       e
     );
@@ -420,25 +278,21 @@
   }
 
 
-  /* ======================
-     軽量プレビュー更新
-  ====================== */
+  // ============================
+  // プレビュー更新
+  // ============================
 
-  function sync() {
+  function scene() {
 
     const [
-      aw,
-      ah
+      a,
+      b
     ] =
       S.aspect.split(":");
 
 
     stage.style.aspectRatio =
-      aw + "/" + ah;
-
-
-    $("#aspect").textContent =
-      S.aspect;
+      a + "/" + b;
 
 
     for (
@@ -446,61 +300,62 @@
     ) {
 
       const e =
-        E.get(item.id) ||
-        makeElement(item);
-
-
-      const v =
-        val(
-          item,
-          S.time
-        );
+        D.get(item.id) ||
+        make(item);
 
 
       e.classList.toggle(
         "selected",
-
-        item.id ===
-          S.selected
+        item.id === S.selected
       );
 
 
       e.style.width =
-        v.w + "px";
+        item.w + "px";
 
 
       e.style.height =
-        v.h + "px";
+        item.h + "px";
 
 
       e.style.transform =
-        `translate3d(${v.x}px, ${v.y}px, 0)
-         rotate(${v.r}deg)`;
+        `
+        translate3d(
+          ${item.x}px,
+          ${item.y}px,
+          0
+        )
+        rotate(
+          ${item.r}deg
+        )
+        scaleX(
+          ${item.flip ? -1 : 1}
+        )
+        `;
 
 
       e.style.opacity =
-        v.o / 100;
+        item.opacity / 100;
 
 
-      /*
-       * display:noneではなく
-       * visibilityを使う。
-       *
-       * v0.2の「突然消える」
-       * 問題対策の一つ。
-       */
+      e.style.zIndex =
+        S.items.indexOf(
+          item
+        ) + 1;
+
+
+      // 時間範囲外だけ非表示
 
       e.style.visibility =
         (
-          S.time >=
-            item.start &&
-
-          S.time <=
-            item.end
+          S.time >= item.start &&
+          S.time <= item.end
         )
           ? "visible"
           : "hidden";
 
+
+      // テキスト
 
       if (
         item.type === "text"
@@ -511,32 +366,25 @@
 
 
         e.style.fontSize =
-          (
-            item.fontSize ||
-            32
-          ) +
+          item.fontSize +
           "px";
 
 
         e.style.color =
-          item.color ||
-          "#111";
+          item.color;
 
       }
 
     }
 
 
-    /*
-     * 削除済みPIPだけ
-     * DOMから消す。
-     */
+    // 削除されたDOMを掃除
 
     for (
       const [
         id,
         element
-      ] of E
+      ] of D
     ) {
 
       if (
@@ -547,7 +395,7 @@
 
         element.remove();
 
-        E.delete(id);
+        D.delete(id);
 
       }
 
@@ -563,16 +411,18 @@
 
 
     $("#clock").textContent =
-      S.time.toFixed(2) +
-      " / " +
-      S.duration.toFixed(2);
+      fmt(S.time)
+      +
+      " / "
+      +
+      fmt(S.duration);
 
   }
 
 
-  /* ======================
-     タイムライン
-  ====================== */
+  // ============================
+  // タイムライン
+  // ============================
 
   function timeline() {
 
@@ -580,101 +430,102 @@
       "";
 
 
-    S.items.forEach(
-      item => {
+    for (
+      const item of S.items
+    ) {
 
-        const track =
-          document.createElement(
-            "div"
-          );
-
-
-        track.className =
-          "track";
-
-
-        const clip =
-          document.createElement(
-            "div"
-          );
-
-
-        clip.className =
-          "clip" +
-          (
-            item.id ===
-              S.selected
-              ? " selected"
-              : ""
-          );
-
-
-        clip.dataset.id =
-          item.id;
-
-
-        clip.style.left =
-          (
-            item.start /
-            S.duration *
-            100
-          ) +
-          "%";
-
-
-        clip.style.width =
-          (
-            (
-              item.end -
-              item.start
-            ) /
-            S.duration *
-            100
-          ) +
-          "%";
-
-
-        clip.textContent =
-          (
-            item.keys?.length
-              ? "◇ "
-              : ""
-          ) +
-          item.name;
-
-
-        track.append(
-          clip
+      const track =
+        document.createElement(
+          "div"
         );
 
 
-        tracks.append(
-          track
+      track.className =
+        "track";
+
+
+      const clip =
+        document.createElement(
+          "div"
         );
 
-      }
-    );
+
+      clip.className =
+        "clip "
+        +
+        item.type
+        +
+        (
+          item.id === S.selected
+            ? " selected"
+            : ""
+        );
+
+
+      clip.dataset.id =
+        item.id;
+
+
+      clip.style.left =
+        (
+          item.start /
+          S.duration *
+          100
+        )
+        +
+        "%";
+
+
+      clip.style.width =
+        Math.max(
+          0.5,
+
+          (
+            item.end -
+            item.start
+          )
+          /
+          S.duration
+          *
+          100
+        )
+        +
+        "%";
+
+
+      clip.textContent =
+        item.name;
+
+
+      track.append(
+        clip
+      );
+
+
+      tracks.append(
+        track
+      );
+
+    }
 
   }
 
 
-  /* ======================
-     選択
-  ====================== */
+  // ============================
+  // 選択
+  // ============================
 
-  function select(
-    id
-  ) {
+  function select(id) {
 
     S.selected =
       id;
 
 
-    $("#selectionBar").hidden =
+    $("#clipbar").hidden =
       !id;
 
 
-    $("#mainTools")
+    $("#toolbar")
       .style
       .visibility =
         id
@@ -682,164 +533,249 @@
           : "visible";
 
 
-    sync();
+    scene();
 
     timeline();
 
   }
 
 
-  /* ======================
-     画像・動画PIP追加
-  ====================== */
+  // ============================
+  // 素材追加
+  // ============================
 
-  $("#files").onchange =
+  function add(
+    file,
+    src,
+    pip
+  ) {
+
+    const w =
+      stage.clientWidth;
+
+
+    const h =
+      stage.clientHeight;
+
+
+    const scale =
+      0.5;
+
+
+    const item = {
+
+      id:
+        uid(),
+
+      type:
+        file.type
+          .startsWith("video")
+          ? "video"
+          : "image",
+
+      name:
+        file.name,
+
+      src,
+
+      x:
+        pip
+          ? w * 0.25
+          : 0,
+
+      y:
+        pip
+          ? h * 0.25
+          : 0,
+
+      w:
+        pip
+          ? w * scale
+          : w,
+
+      h:
+        pip
+          ? h * scale
+          : h,
+
+      r:
+        0,
+
+      flip:
+        false,
+
+      opacity:
+        100,
+
+      start:
+        0,
+
+      end:
+        S.duration,
+
+      speed:
+        1,
+
+      volume:
+        100,
+
+      keys:
+        []
+
+    };
+
+
+    S.items.push(
+      item
+    );
+
+
+    S.selected =
+      item.id;
+
+  }
+
+
+  // ============================
+  // ファイル読み込み
+  // ============================
+
+  function importFiles(
+    input,
+    pip = false
+  ) {
+
+    const files =
+      [
+        ...input.files
+      ];
+
+
+    if (
+      !files.length
+    ) {
+
+      return;
+
+    }
+
+
+    hist();
+
+
+    Promise.all(
+
+      files.map(
+        file =>
+
+          new Promise(
+            done => {
+
+              const reader =
+                new FileReader();
+
+
+              reader.onload =
+                () => {
+
+                  add(
+                    file,
+                    reader.result,
+                    pip
+                  );
+
+                  done();
+
+                };
+
+
+              reader.readAsDataURL(
+                file
+              );
+
+            }
+          )
+
+      )
+
+    ).then(
+      () => {
+
+        select(
+          S.selected
+        );
+
+        save();
+
+      }
+    );
+
+
+    input.value =
+      "";
+
+  }
+
+
+  $("#media").onchange =
     event => {
 
-      const files =
-        [
-          ...event.target.files
-        ];
-
-
-      hist();
-
-
-      Promise.all(
-
-        files.map(
-          file =>
-            new Promise(
-              done => {
-
-                const reader =
-                  new FileReader();
-
-
-                reader.onload =
-                  () => {
-
-                    const size =
-                      Math.min(
-                        stage.clientWidth,
-                        stage.clientHeight
-                      ) *
-                      0.34;
-
-
-                    const item = {
-
-                      id:
-                        uid(),
-
-                      type:
-                        file.type
-                          .startsWith(
-                            "video"
-                          )
-                          ? "video"
-                          : "image",
-
-                      name:
-                        file.name,
-
-                      src:
-                        reader.result,
-
-                      x:
-                        (
-                          stage.clientWidth -
-                          size
-                        ) /
-                        2,
-
-                      y:
-                        (
-                          stage.clientHeight -
-                          size
-                        ) /
-                        2,
-
-                      w:
-                        size,
-
-                      h:
-                        size,
-
-                      r:
-                        0,
-
-                      o:
-                        100,
-
-                      start:
-                        0,
-
-                      end:
-                        S.duration,
-
-                      keys:
-                        [],
-
-                      ease:
-                        "ease"
-
-                    };
-
-
-                    S.items.push(
-                      item
-                    );
-
-
-                    S.selected =
-                      item.id;
-
-
-                    done();
-
-                  };
-
-
-                reader.readAsDataURL(
-                  file
-                );
-
-              }
-            )
-        )
-
-      ).then(
-        () => {
-
-          select(
-            S.selected
-          );
-
-          save();
-
-        }
+      importFiles(
+        event.target
       );
 
     };
 
 
-  /* ======================
-     テキスト追加
-  ====================== */
+  // ============================
+  // 下から出る設定画面
+  // ============================
 
-  $("#addText").onclick =
+  function sheet(
+    title,
+    body
+  ) {
+
+    $("#sheetTitle")
+      .textContent =
+        title;
+
+
+    $("#sheetBody")
+      .innerHTML =
+        body;
+
+
+    $("#sheet").hidden =
+      false;
+
+  }
+
+
+  $("#sheetClose").onclick =
     () => {
 
-      const text =
-        prompt(
-          "文字",
-          "TEXT"
+      $("#sheet").hidden =
+        true;
+
+    };
+
+
+  // ============================
+  // メインツール
+  // ============================
+
+  $("#toolbar").onclick =
+    event => {
+
+      const button =
+        event.target.closest(
+          "[data-tool]"
         );
 
 
       if (
-        text == null
+        !button
       ) {
 
         return;
@@ -847,86 +783,268 @@
       }
 
 
-      hist();
+      const tool =
+        button.dataset.tool;
 
 
-      const item = {
+      // キャンバス
 
-        id:
-          uid(),
+      if (
+        tool === "canvas"
+      ) {
 
-        type:
-          "text",
+        sheet(
+          "キャンバス",
 
-        name:
-          text,
+          `
+          <div class="options">
 
-        text,
+            <button data-r="9:16">
+              9:16
+            </button>
 
-        x:
-          40,
+            <button data-r="16:9">
+              16:9
+            </button>
 
-        y:
-          100,
+            <button data-r="1:1">
+              1:1
+            </button>
 
-        w:
-          180,
+            <button data-r="4:5">
+              4:5
+            </button>
 
-        h:
-          55,
+            <button data-r="4:3">
+              4:3
+            </button>
 
-        r:
-          0,
+          </div>
+          `
+        );
 
-        o:
-          100,
-
-        start:
-          0,
-
-        end:
-          S.duration,
-
-        fontSize:
-          32,
-
-        color:
-          "#111111",
-
-        keys:
-          [],
-
-        ease:
-          "ease"
-
-      };
+      }
 
 
-      S.items.push(
-        item
-      );
+      // テキスト
+
+      if (
+        tool === "text"
+      ) {
+
+        const value =
+          prompt(
+            "テキスト",
+            "TEXT"
+          );
 
 
-      select(
-        item.id
-      );
+        if (
+          value == null
+        ) {
+
+          return;
+
+        }
 
 
-      save();
+        hist();
+
+
+        const item = {
+
+          id:
+            uid(),
+
+          type:
+            "text",
+
+          name:
+            value,
+
+          text:
+            value,
+
+          x:
+            40,
+
+          y:
+            100,
+
+          w:
+            180,
+
+          h:
+            55,
+
+          r:
+            0,
+
+          flip:
+            false,
+
+          opacity:
+            100,
+
+          start:
+            0,
+
+          end:
+            S.duration,
+
+          fontSize:
+            32,
+
+          color:
+            "#ffffff",
+
+          keys:
+            []
+
+        };
+
+
+        S.items.push(
+          item
+        );
+
+
+        select(
+          item.id
+        );
+
+
+        save();
+
+      }
+
+
+      // PIP
+
+      if (
+        tool === "pip"
+      ) {
+
+        sheet(
+          "PIP",
+
+          `
+          <label class="tool">
+
+            ＋ PIP追加
+
+            <input
+              id="pipFile"
+              type="file"
+              accept="image/*,video/*"
+              hidden
+            >
+
+          </label>
+          `
+        );
+
+
+        setTimeout(
+          () => {
+
+            $("#pipFile")
+              .onchange =
+                event => {
+
+                  importFiles(
+                    event.target,
+                    true
+                  );
+
+                };
+
+          }
+        );
+
+      }
+
+
+      // 調整
+
+      if (
+        tool === "filter"
+      ) {
+
+        sheet(
+          "調整",
+
+          `
+          <div class="fields">
+
+            <label>
+
+              透明度
+
+              <input
+                id="opacity"
+                type="range"
+                min="0"
+                max="100"
+                value="100"
+              >
+
+            </label>
+
+          </div>
+          `
+        );
+
+      }
 
     };
 
 
-  /* ======================
-     タッチ開始
-  ====================== */
+  // ============================
+  // キャンバス比率
+  // ============================
+
+  $("#sheetBody").onclick =
+    event => {
+
+      const ratio =
+        event.target.dataset.r;
+
+
+      if (
+        ratio
+      ) {
+
+        hist();
+
+
+        S.aspect =
+          ratio;
+
+
+        scene();
+
+        save();
+
+
+        $("#sheet").hidden =
+          true;
+
+      }
+
+    };
+
+
+  // ============================
+  // PIP タッチ開始
+  // ============================
 
   stage.onpointerdown =
     event => {
 
       const element =
         event.target.closest(
-          ".pip"
+          ".layer"
         );
 
 
@@ -963,6 +1081,8 @@
         cur();
 
 
+      // 1本指
+
       if (
         P.size === 1
       ) {
@@ -972,7 +1092,7 @@
 
         G = {
 
-          mode:
+          type:
             "move",
 
           x:
@@ -981,37 +1101,40 @@
           y:
             item.y,
 
-          p: [
+          px:
             event.clientX,
+
+          py:
             event.clientY
-          ]
 
         };
 
       }
 
 
+      // 2本指
+
       else {
 
-        const a =
+        const points =
           [
             ...P.values()
           ];
 
 
         const dx =
-          a[1].x -
-          a[0].x;
+          points[1].x -
+          points[0].x;
 
 
         const dy =
-          a[1].y -
-          a[0].y;
+          points[1].y -
+          points[0].y;
 
 
         G = {
 
-          mode:
+          type:
             "pinch",
 
           d:
@@ -1042,9 +1165,9 @@
     };
 
 
-  /* ======================
-     タッチ移動
-  ====================== */
+  // ============================
+  // PIP 移動 / 拡縮 / 回転
+  // ============================
 
   stage.onpointermove =
     event => {
@@ -1052,7 +1175,8 @@
       if (
         !P.has(
           event.pointerId
-        ) ||
+        )
+        ||
         !cur()
       ) {
 
@@ -1084,27 +1208,30 @@
         ];
 
 
-      /*
-       * 1本指
-       * 移動
-       */
+      // 移動
 
       if (
         points.length === 1 &&
-        G?.mode === "move"
+        G?.type === "move"
       ) {
 
         item.x =
-          G.x +
-          points[0].x -
-          G.p[0];
+          G.x
+          +
+          points[0].x
+          -
+          G.px;
 
 
         item.y =
-          G.y +
-          points[0].y -
-          G.p[1];
+          G.y
+          +
+          points[0].y
+          -
+          G.py;
 
+
+        // 中央スナップ
 
         const cx =
           item.x +
@@ -1116,24 +1243,19 @@
           item.h / 2;
 
 
-        /*
-         * 中央スナップ
-         */
-
         if (
           Math.abs(
             cx -
-            stage.clientWidth /
-            2
-          ) <
-          9
+            stage.clientWidth / 2
+          )
+          <
+          8
         ) {
 
           item.x =
-            stage.clientWidth /
-            2 -
-            item.w /
-            2;
+            stage.clientWidth / 2
+            -
+            item.w / 2;
 
         }
 
@@ -1141,30 +1263,26 @@
         if (
           Math.abs(
             cy -
-            stage.clientHeight /
-            2
-          ) <
-          9
+            stage.clientHeight / 2
+          )
+          <
+          8
         ) {
 
           item.y =
-            stage.clientHeight /
-            2 -
-            item.h /
-            2;
+            stage.clientHeight / 2
+            -
+            item.h / 2;
 
         }
 
 
-        sync();
+        scene();
 
       }
 
 
-      /*
-       * 2本指
-       * 拡大縮小＋回転
-       */
+      // 2本指
 
       else if (
         points.length === 2
@@ -1180,59 +1298,56 @@
           points[0].y;
 
 
-        const distance =
+        const scale =
           Math.hypot(
             dx,
             dy
-          );
-
-
-        const angle =
-          Math.atan2(
-            dy,
-            dx
-          );
-
-
-        const scale =
-          distance /
+          )
+          /
           G.d;
 
 
         item.w =
           Math.max(
-            8,
+            10,
             G.w * scale
           );
 
 
         item.h =
           Math.max(
-            8,
+            10,
             G.h * scale
           );
 
 
         item.r =
-          G.r +
+          G.r
+          +
           (
-            angle -
+            Math.atan2(
+              dy,
+              dx
+            )
+            -
             G.a
-          ) *
-          180 /
+          )
+          *
+          180
+          /
           Math.PI;
 
 
-        sync();
+        scene();
 
       }
 
     };
 
 
-  /* ======================
-     タッチ終了
-  ====================== */
+  // ============================
+  // タッチ終了
+  // ============================
 
   function pointerUp(
     event
@@ -1250,40 +1365,10 @@
       G =
         null;
 
+
       save();
 
-    }
-
-
-    else {
-
-      const item =
-        cur();
-
-
-      const point =
-        [
-          ...P.values()
-        ][0];
-
-
-      G = {
-
-        mode:
-          "move",
-
-        x:
-          item.x,
-
-        y:
-          item.y,
-
-        p: [
-          point.x,
-          point.y
-        ]
-
-      };
+      timeline();
 
     }
 
@@ -1298,9 +1383,9 @@
     pointerUp;
 
 
-  /* ======================
-     タイムライン選択
-  ====================== */
+  // ============================
+  // タイムライン選択
+  // ============================
 
   tracks.onclick =
     event => {
@@ -1324,16 +1409,16 @@
     };
 
 
-  /* ======================
-     選択メニュー
-  ====================== */
+  // ============================
+  // クリップ編集
+  // ============================
 
-  $("#selectionBar").onclick =
+  $("#clipbar").onclick =
     event => {
 
       const button =
         event.target.closest(
-          "button"
+          "[data-action]"
         );
 
 
@@ -1352,32 +1437,312 @@
 
 
       const action =
-        button.dataset.act;
+        button.dataset.action;
 
+
+      // 削除
 
       if (
-        action === "edit"
-      ) {
-
-        fillPanel();
-
-        $("#panel").hidden =
-          false;
-
-      }
-
-
-      else if (
-        action === "key"
+        action === "delete"
       ) {
 
         hist();
 
 
-        item.keys =
-          item.keys ||
-          [];
+        S.items =
+          S.items.filter(
+            x =>
+              x.id !==
+              item.id
+          );
 
+
+        select(null);
+
+        save();
+
+      }
+
+
+      // 複製
+
+      if (
+        action === "duplicate"
+      ) {
+
+        hist();
+
+
+        const copy =
+          JSON.parse(
+            JSON.stringify(
+              item
+            )
+          );
+
+
+        copy.id =
+          uid();
+
+
+        copy.name +=
+          " copy";
+
+
+        copy.x +=
+          15;
+
+
+        copy.y +=
+          15;
+
+
+        S.items.push(
+          copy
+        );
+
+
+        select(
+          copy.id
+        );
+
+
+        save();
+
+      }
+
+
+      // 回転
+
+      if (
+        action === "rotate"
+      ) {
+
+        hist();
+
+
+        item.r =
+          (
+            item.r +
+            90
+          )
+          %
+          360;
+
+
+        scene();
+
+        save();
+
+      }
+
+
+      // 反転
+
+      if (
+        action === "flip"
+      ) {
+
+        hist();
+
+
+        item.flip =
+          !item.flip;
+
+
+        scene();
+
+        save();
+
+      }
+
+
+      // 分割
+
+      if (
+        action === "split"
+      ) {
+
+        if (
+          S.time <= item.start ||
+          S.time >= item.end
+        ) {
+
+          return toast(
+            "クリップ内に再生ヘッドを置いてください"
+          );
+
+        }
+
+
+        hist();
+
+
+        const copy =
+          JSON.parse(
+            JSON.stringify(
+              item
+            )
+          );
+
+
+        copy.id =
+          uid();
+
+
+        copy.name +=
+          " 2";
+
+
+        copy.start =
+          S.time;
+
+
+        item.end =
+          S.time;
+
+
+        S.items.splice(
+          S.items.indexOf(
+            item
+          ) + 1,
+          0,
+          copy
+        );
+
+
+        timeline();
+
+        save();
+
+      }
+
+
+      // トリム
+
+      if (
+        action === "trim"
+      ) {
+
+        sheet(
+          "トリム",
+
+          `
+          <div class="fields">
+
+            <label>
+
+              開始
+
+              <input
+                id="trimS"
+                type="number"
+                step=".01"
+                value="${item.start}"
+              >
+
+            </label>
+
+
+            <label>
+
+              終了
+
+              <input
+                id="trimE"
+                type="number"
+                step=".01"
+                value="${item.end}"
+              >
+
+            </label>
+
+          </div>
+          `
+        );
+
+      }
+
+
+      // 速度
+
+      if (
+        action === "speed"
+      ) {
+
+        sheet(
+          "速度",
+
+          `
+          <div class="options">
+
+            ${[
+              0.25,
+              0.5,
+              1,
+              1.5,
+              2,
+              3,
+              4
+            ]
+              .map(
+                value =>
+                  `
+                  <button
+                    data-speed="${value}"
+                  >
+                    ${value}×
+                  </button>
+                  `
+              )
+              .join("")
+            }
+
+          </div>
+          `
+        );
+
+      }
+
+
+      // 音量
+
+      if (
+        action === "volume"
+      ) {
+
+        sheet(
+          "音量",
+
+          `
+          <div class="fields">
+
+            <label>
+
+              音量 %
+
+              <input
+                id="vol"
+                type="range"
+                min="0"
+                max="100"
+                value="${item.volume}"
+              >
+
+            </label>
+
+          </div>
+          `
+        );
+
+      }
+
+
+      // キーフレーム
+
+      if (
+        action === "key"
+      ) {
 
         item.keys.push({
 
@@ -1399,120 +1764,16 @@
           r:
             item.r,
 
-          o:
-            item.o,
-
-          ease:
-            item.ease
+          opacity:
+            item.opacity
 
         });
 
 
-        timeline();
-
-        save();
-
         toast(
-          "◇追加"
+          "◇ キーフレーム追加"
         );
 
-      }
-
-
-      else if (
-        action === "anim"
-      ) {
-
-        $("#animSheet").hidden =
-          false;
-
-      }
-
-
-      else if (
-        action === "center"
-      ) {
-
-        hist();
-
-
-        item.x =
-          (
-            stage.clientWidth -
-            item.w
-          ) /
-          2;
-
-
-        item.y =
-          (
-            stage.clientHeight -
-            item.h
-          ) /
-          2;
-
-
-        sync();
-
-        save();
-
-      }
-
-
-      else if (
-        action === "dup"
-      ) {
-
-        hist();
-
-
-        const copy =
-          cp(item);
-
-
-        copy.id =
-          uid();
-
-
-        copy.x +=
-          12;
-
-
-        copy.y +=
-          12;
-
-
-        S.items.push(
-          copy
-        );
-
-
-        select(
-          copy.id
-        );
-
-
-        save();
-
-      }
-
-
-      else if (
-        action === "del"
-      ) {
-
-        hist();
-
-
-        S.items =
-          S.items.filter(
-            x =>
-              x.id !==
-              item.id
-          );
-
-
-        select(null);
 
         save();
 
@@ -1521,195 +1782,60 @@
     };
 
 
-  /* ======================
-     詳細パネル
-  ====================== */
+  // ============================
+  // 速度ボタン
+  // ============================
 
-  function fillPanel() {
+  $("#sheetBody")
+    .addEventListener(
+      "click",
 
-    const item =
-      cur();
+      event => {
+
+        const value =
+          event.target
+            .dataset
+            .speed;
 
 
-    $("#pname").textContent =
-      item.name;
+        if (
+          value &&
+          cur()
+        ) {
+
+          hist();
 
 
-    [
-      ["x", "x"],
-      ["y", "y"],
-      ["w", "w"],
-      ["h", "h"],
-      ["r", "r"],
-      ["o", "o"],
-      ["start", "start"],
-      ["end", "end"]
-    ].forEach(
-      ([id, key]) => {
+          cur().speed =
+            +value;
 
-        $("#" + id).value =
-          item[key];
+
+          toast(
+            value +
+            "×"
+          );
+
+
+          save();
+
+        }
 
       }
     );
 
 
-    $("#ease").value =
-      item.ease;
+  // ============================
+  // 設定値変更
+  // ============================
 
-
-    $("#textOpts").hidden =
-      item.type !==
-      "text";
-
-
-    if (
-      item.type === "text"
-    ) {
-
-      $("#txt").value =
-        item.text;
-
-
-      $("#fs").value =
-        item.fontSize;
-
-
-      $("#color").value =
-        item.color;
-
-    }
-
-  }
-
-
-  [
-    ["x", "x"],
-    ["y", "y"],
-    ["w", "w"],
-    ["h", "h"],
-    ["r", "r"],
-    ["o", "o"],
-    ["start", "start"],
-    ["end", "end"]
-  ].forEach(
-    ([id, key]) => {
-
-      $("#" + id).onchange =
-        event => {
-
-          const item =
-            cur();
-
-
-          hist();
-
-
-          item[key] =
-            +event.target.value;
-
-
-          sync();
-
-          timeline();
-
-          save();
-
-        };
-
-    }
-  );
-
-
-  $("#ease").onchange =
+  $("#sheetBody").onchange =
     event => {
-
-      cur().ease =
-        event.target.value;
-
-      save();
-
-    };
-
-
-  $("#txt").onchange =
-    event => {
-
-      const item =
-        cur();
-
-
-      item.text =
-        event.target.value;
-
-
-      item.name =
-        event.target.value;
-
-
-      sync();
-
-      timeline();
-
-      save();
-
-    };
-
-
-  $("#fs").onchange =
-    event => {
-
-      cur().fontSize =
-        +event.target.value;
-
-
-      sync();
-
-      save();
-
-    };
-
-
-  $("#color").oninput =
-    event => {
-
-      cur().color =
-        event.target.value;
-
-
-      sync();
-
-    };
-
-
-  $("#close").onclick =
-    () => {
-
-      $("#panel").hidden =
-        true;
-
-    };
-
-
-  /* ======================
-     アニメーション
-  ====================== */
-
-  $("#animSheet").onclick =
-    event => {
-
-      const button =
-        event.target.closest(
-          "[data-a]"
-        );
-
 
       const item =
         cur();
 
 
       if (
-        !button ||
         !item
       ) {
 
@@ -1718,256 +1844,105 @@
       }
 
 
-      hist();
-
-
-      const t =
-        S.time;
-
-
-      const base = {
-
-        x:
-          item.x,
-
-        y:
-          item.y,
-
-        w:
-          item.w,
-
-        h:
-          item.h,
-
-        r:
-          item.r,
-
-        o:
-          item.o,
-
-        ease:
-          item.ease
-
-      };
-
-
-      let keys =
-        [];
-
-
-      const type =
-        button.dataset.a;
-
+      // トリム開始
 
       if (
-        type === "pop"
+        event.target.id ===
+        "trimS"
       ) {
 
-        keys = [
+        hist();
 
-          {
-            ...base,
-            t,
-            w:
-              item.w *
-              0.2,
-            h:
-              item.h *
-              0.2,
-            o:
-              0
-          },
 
-          {
-            ...base,
-            t:
-              t +
-              0.3
-          }
+        item.start =
+          Math.max(
+            0,
 
-        ];
+            Math.min(
+              +event.target.value,
+              item.end
+            )
+          );
+
+
+        timeline();
+
+        scene();
+
+        save();
 
       }
 
 
+      // トリム終了
+
       if (
-        type === "slide"
+        event.target.id ===
+        "trimE"
       ) {
 
-        keys = [
+        hist();
 
-          {
-            ...base,
-            t,
-            x:
-              item.x -
-              150,
-            o:
-              0
-          },
 
-          {
-            ...base,
-            t:
-              t +
-              0.4
-          }
+        item.end =
+          Math.min(
+            S.duration,
 
-        ];
+            Math.max(
+              +event.target.value,
+              item.start
+            )
+          );
+
+
+        timeline();
+
+        scene();
+
+        save();
 
       }
 
 
+      // 音量
+
       if (
-        type === "bounce"
+        event.target.id ===
+        "vol"
       ) {
 
-        keys = [
+        item.volume =
+          +event.target.value;
 
-          {
-            ...base,
-            t
-          },
 
-          {
-            ...base,
-            t:
-              t +
-              0.16,
-            y:
-              item.y -
-              45
-          },
-
-          {
-            ...base,
-            t:
-              t +
-              0.35
-          }
-
-        ];
+        save();
 
       }
 
 
-      if (
-        type === "shake"
-      ) {
-
-        keys = [
-
-          {
-            ...base,
-            t
-          },
-
-          {
-            ...base,
-            t:
-              t +
-              0.08,
-            x:
-              item.x -
-              12
-          },
-
-          {
-            ...base,
-            t:
-              t +
-              0.16,
-            x:
-              item.x +
-              12
-          },
-
-          {
-            ...base,
-            t:
-              t +
-              0.25
-          }
-
-        ];
-
-      }
-
+      // 透明度
 
       if (
-        type === "squash"
+        event.target.id ===
+        "opacity"
       ) {
 
-        keys = [
+        item.opacity =
+          +event.target.value;
 
-          {
-            ...base,
-            t,
-            w:
-              item.w *
-              1.15,
-            h:
-              item.h *
-              0.75
-          },
 
-          {
-            ...base,
-            t:
-              t +
-              0.13,
-            w:
-              item.w *
-              0.92,
-            h:
-              item.h *
-              1.08
-          },
+        scene();
 
-          {
-            ...base,
-            t:
-              t +
-              0.28
-          }
-
-        ];
+        save();
 
       }
-
-
-      item.keys =
-        (
-          item.keys ||
-          []
-        ).concat(
-          keys
-        );
-
-
-      $("#animSheet").hidden =
-        true;
-
-
-      timeline();
-
-      save();
 
     };
 
 
-  $("#animClose").onclick =
-    () => {
-
-      $("#animSheet").hidden =
-        true;
-
-    };
-
-
-  /* ======================
-     シーク
-  ====================== */
+  // ============================
+  // シーク
+  // ============================
 
   $("#seek").oninput =
     event => {
@@ -1975,61 +1950,15 @@
       S.time =
         +event.target.value;
 
-      sync();
+
+      scene();
 
     };
 
 
-  /* ======================
-     動画長さ
-  ====================== */
-
-  $("#duration").onchange =
-    event => {
-
-      S.duration =
-        Math.max(
-          1,
-          +event.target.value
-        );
-
-
-      sync();
-
-      timeline();
-
-      save();
-
-    };
-
-
-  /* ======================
-     縦横比
-  ====================== */
-
-  $("#aspect").onclick =
-    () => {
-
-      S.aspect =
-        S.aspect ===
-        "9:16"
-          ? "16:9"
-          : "9:16";
-
-
-      sync();
-
-      save();
-
-    };
-
-
-  /* ======================
-     再生
-
-     タイムラインDOMは
-     作り直さない。
-  ====================== */
+  // ============================
+  // 再生
+  // ============================
 
   function tick(
     time
@@ -2058,7 +1987,8 @@
       (
         time -
         last
-      ) /
+      )
+      /
       1000;
 
 
@@ -2079,18 +2009,19 @@
         false;
 
 
-      $("#play").textContent =
-        "▶︎";
+      $("#play")
+        .textContent =
+          "▶";
 
 
-      sync();
+      scene();
 
       return;
 
     }
 
 
-    sync();
+    scene();
 
 
     requestAnimationFrame(
@@ -2109,8 +2040,8 @@
 
       $("#play").textContent =
         S.playing
-          ? "⏸"
-          : "▶︎";
+          ? "Ⅱ"
+          : "▶";
 
 
       last =
@@ -2127,38 +2058,30 @@
 
       }
 
+      else {
+
+        scene();
+
+      }
+
     };
 
 
-  /* ======================
-     保存
-  ====================== */
+  // ============================
+  // 保存
+  // ============================
 
   $("#save").onclick =
     () => {
 
-      save(1);
+      save(true);
 
     };
 
 
-  /* ======================
-     動画書き出し
-  ====================== */
-
-  $("#export").onclick =
-    () => {
-
-      toast(
-        "書き出しレンダラーは次段階"
-      );
-
-    };
-
-
-  /* ======================
-     Undo
-  ====================== */
+  // ============================
+  // Undo
+  // ============================
 
   $("#undo").onclick =
     () => {
@@ -2173,51 +2096,35 @@
 
 
       S.redo.push(
-
-        JSON.stringify({
-
-          duration:
-            S.duration,
-
-          aspect:
-            S.aspect,
-
-          items:
-            S.items
-
-        })
-
+        snapshot()
       );
 
 
       Object.assign(
         S,
+
         JSON.parse(
           S.undo.pop()
         )
       );
 
 
-      E.forEach(
+      D.forEach(
         e => e.remove()
       );
 
 
-      E.clear();
+      D.clear();
 
 
       select(null);
 
-      sync();
-
-      timeline();
-
     };
 
 
-  /* ======================
-     Redo
-  ====================== */
+  // ============================
+  // Redo
+  // ============================
 
   $("#redo").onclick =
     () => {
@@ -2232,55 +2139,53 @@
 
 
       S.undo.push(
-
-        JSON.stringify({
-
-          duration:
-            S.duration,
-
-          aspect:
-            S.aspect,
-
-          items:
-            S.items
-
-        })
-
+        snapshot()
       );
 
 
       Object.assign(
         S,
+
         JSON.parse(
           S.redo.pop()
         )
       );
 
 
-      E.forEach(
+      D.forEach(
         e => e.remove()
       );
 
 
-      E.clear();
+      D.clear();
 
 
       select(null);
 
-      sync();
+    };
 
-      timeline();
+
+  // ============================
+  // 書き出し
+  // ============================
+
+  $("#export").onclick =
+    () => {
+
+      toast(
+        "書き出しエンジンは次段階で接続"
+      );
 
     };
 
 
-  /* ======================
-     起動
-  ====================== */
+  // ============================
+  // 起動
+  // ============================
 
   load();
 
-  sync();
+  scene();
 
   timeline();
 
