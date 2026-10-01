@@ -1,134 +1,85 @@
 <!doctype html>
 <html lang="ja">
-
 <head>
 <meta charset="utf-8">
-
 <meta
   name="viewport"
   content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"
 >
-
-<title>PB Editor</title>
-
-<link
-  rel="stylesheet"
-  href="style.css"
->
+<title>PB Editor v2.0</title>
+<link rel="stylesheet" href="style.css">
 </head>
-
 
 <body>
 
-
-<!-- =====================================================
+<!-- =========================
      HOME
-===================================================== -->
+========================= -->
 
-<section
-  id="homeScreen"
-  class="screen active"
->
+<section id="home" class="screen active">
 
-<header class="homeHeader">
+  <header class="homeHead">
 
-  <div>
-    <h1>PB Editor</h1>
-    <small>Video & Polandball Editor</small>
-  </div>
+    <div>
+      <h1>PB Editor</h1>
+      <small>v2.0 Studio</small>
+    </div>
 
-  <button
-    id="homeSettings"
-    class="circleButton"
-  >
-    ⚙
-  </button>
+    <button id="settings">
+      ⚙
+    </button>
 
-</header>
+  </header>
 
 
-<div class="homeContent">
-
-
-  <!-- NEW PROJECT -->
-
-  <section class="createArea">
+  <main class="homeMain">
 
     <h2>新しく作る</h2>
 
+    <div class="create">
 
-    <div class="createCards">
+      <label class="new primary">
 
-
-      <button
-        class="createCard primary"
-        id="newVideo"
-      >
-
-        <div class="createIcon">
-          ▶
-        </div>
+        ▶
 
         <b>
           ビデオ
         </b>
 
         <span>
-          新しい動画を作成
+          動画・写真から作成
         </span>
 
-      </button>
+        <input
+          id="newMedia"
+          type="file"
+          accept="video/*,image/*"
+          multiple
+          hidden
+        >
+
+      </label>
 
 
       <button
-        class="createCard"
-        id="newPhoto"
+        class="new"
+        id="blank"
       >
 
-        <div class="createIcon">
-          ▧
-        </div>
-
-        <b>
-          写真
-        </b>
-
-        <span>
-          写真から作成
-        </span>
-
-      </button>
-
-
-      <button
-        class="createCard"
-        id="newCanvas"
-      >
-
-        <div class="createIcon">
-          ＋
-        </div>
+        ＋
 
         <b>
           空のプロジェクト
         </b>
 
         <span>
-          素材をあとから追加
+          あとから素材を追加
         </span>
 
       </button>
 
-
     </div>
 
-  </section>
-
-
-
-  <!-- RECENT PROJECTS -->
-
-  <section class="projectArea">
 
     <div class="sectionTitle">
 
@@ -136,732 +87,483 @@
         最近のプロジェクト
       </h2>
 
-      <button id="projectManage">
-        管理
-      </button>
+      <span id="storageState"></span>
 
     </div>
 
 
-    <div id="projectList">
+    <div
+      id="projects"
+      class="projects"
+    ></div>
 
-
-      <!-- EMPTY -->
-
-      <div
-        id="emptyProjects"
-        class="emptyProjects"
-      >
-
-        <div class="emptyIcon">
-          🎬
-        </div>
-
-        <b>
-          まだプロジェクトがありません
-        </b>
-
-        <span>
-          「ビデオ」から最初の作品を作ってみよう
-        </span>
-
-      </div>
-
-
-    </div>
-
-  </section>
-
-
-</div>
-
-
-<input
-  id="homeMedia"
-  type="file"
-  accept="video/*,image/*"
-  multiple
-  hidden
->
-
+  </main>
 
 </section>
 
 
 
-<!-- =====================================================
+<!-- =========================
      EDITOR
-===================================================== -->
+========================= -->
 
 <section
-  id="editorScreen"
+  id="editor"
   class="screen"
 >
 
+  <header class="editHead">
 
-<!-- EDITOR HEADER -->
-
-<header class="editorHeader">
-
-
-  <button
-    id="backHome"
-    class="headerButton"
-  >
-    ‹
-  </button>
+    <button id="back">
+      ‹
+    </button>
 
 
-  <div class="projectTitle">
+    <div class="title">
 
-    <input
-      id="projectName"
-      value="新しいプロジェクト"
-    >
+      <input
+        id="projectName"
+        value="新しいプロジェクト"
+      >
 
-    <small id="saveStatus">
-      保存済み
-    </small>
+      <small id="saveState">
+        保存済み
+      </small>
 
-  </div>
+    </div>
 
 
-  <div class="headerActions">
-
-    <button
-      id="undo"
-      class="headerButton"
-    >
+    <button id="undo">
       ↶
     </button>
 
 
-    <button
-      id="redo"
-      class="headerButton"
-    >
+    <button id="redo">
       ↷
     </button>
 
 
     <button
+      class="export"
       id="export"
-      class="exportButton"
     >
       書き出し
+    </button>
+
+  </header>
+
+
+
+  <!-- =========================
+       WORKSPACE
+  ========================= -->
+
+  <main class="workspace">
+
+
+    <!-- PREVIEW -->
+
+    <section class="preview">
+
+      <div id="viewer">
+
+        <div id="stage">
+
+          <div
+            id="gx"
+            class="guide v"
+          ></div>
+
+          <div
+            id="gy"
+            class="guide h"
+          ></div>
+
+        </div>
+
+      </div>
+
+
+      <div class="transport">
+
+        <button id="play">
+          ▶
+        </button>
+
+        <span id="clock">
+          00:00.00 / 00:10.00
+        </span>
+
+        <button id="fit">
+          □
+        </button>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- =========================
+         TIMELINE
+    ========================= -->
+
+    <section class="timeline">
+
+      <div class="tlTop">
+
+        <button id="zoomOut">
+          −
+        </button>
+
+        <span>
+          タイムライン
+        </span>
+
+        <button id="zoomIn">
+          ＋
+        </button>
+
+      </div>
+
+
+      <div
+        id="tlScroll"
+        class="tlScroll"
+      >
+
+        <div id="tlContent">
+
+
+          <!-- RULER -->
+
+          <div id="ruler"></div>
+
+
+          <!-- PLAYHEAD -->
+
+          <div id="playhead">
+
+            <i></i>
+
+          </div>
+
+
+          <!-- TRACKS -->
+
+          <div id="tracks"></div>
+
+
+        </div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+
+  <!-- =========================
+       MAIN TOOLBAR
+  ========================= -->
+
+  <nav
+    id="mainbar"
+    class="bar"
+  >
+
+
+    <label>
+
+      ＋
+
+      <span>
+        素材
+      </span>
+
+      <input
+        id="media"
+        type="file"
+        accept="video/*,image/*"
+        multiple
+        hidden
+      >
+
+    </label>
+
+
+
+    <button data-tool="canvas">
+
+      ▣
+
+      <span>
+        キャンバス
+      </span>
+
+    </button>
+
+
+
+    <button data-tool="text">
+
+      T
+
+      <span>
+        テキスト
+      </span>
+
+    </button>
+
+
+
+    <label>
+
+      ◫
+
+      <span>
+        PIP
+      </span>
+
+      <input
+        id="pip"
+        type="file"
+        accept="video/*,image/*"
+        multiple
+        hidden
+      >
+
+    </label>
+
+
+
+    <button data-tool="adjust">
+
+      ◐
+
+      <span>
+        調整
+      </span>
+
+    </button>
+
+
+
+    <button data-tool="background">
+
+      ▧
+
+      <span>
+        背景
+      </span>
+
+    </button>
+
+  </nav>
+
+
+
+  <!-- =========================
+       SELECTED CLIP TOOLBAR
+  ========================= -->
+
+  <nav
+    id="clipbar"
+    class="bar"
+    hidden
+  >
+
+
+    <button data-act="done">
+
+      ✓
+
+      <span>
+        完了
+      </span>
+
+    </button>
+
+
+
+    <button data-act="split">
+
+      ✂
+
+      <span>
+        分割
+      </span>
+
+    </button>
+
+
+
+    <button data-act="trim">
+
+      ↔
+
+      <span>
+        トリム
+      </span>
+
+    </button>
+
+
+
+    <button data-act="speed">
+
+      1×
+
+      <span>
+        速度
+      </span>
+
+    </button>
+
+
+
+    <button data-act="volume">
+
+      🔊
+
+      <span>
+        音量
+      </span>
+
+    </button>
+
+
+
+    <button data-act="transform">
+
+      ◇
+
+      <span>
+        変形
+      </span>
+
+    </button>
+
+
+
+    <button data-act="rotate">
+
+      ↻
+
+      <span>
+        回転
+      </span>
+
+    </button>
+
+
+
+    <button data-act="flip">
+
+      ⇆
+
+      <span>
+        反転
+      </span>
+
+    </button>
+
+
+
+    <button data-act="layer">
+
+      ☷
+
+      <span>
+        レイヤー
+      </span>
+
+    </button>
+
+
+
+    <button data-act="key">
+
+      ◆
+
+      <span>
+        キー
+      </span>
+
+    </button>
+
+
+
+    <button data-act="duplicate">
+
+      ▣
+
+      <span>
+        複製
+      </span>
+
+    </button>
+
+
+
+    <button
+      class="danger"
+      data-act="delete"
+    >
+
+      ⌫
+
+      <span>
+        削除
+      </span>
+
+    </button>
+
+  </nav>
+
+</section>
+
+
+
+<!-- =========================
+     BOTTOM SHEET
+========================= -->
+
+<section
+  id="sheet"
+  hidden
+>
+
+  <div class="handle"></div>
+
+
+  <div class="sheetHead">
+
+    <b id="sheetTitle"></b>
+
+    <button id="sheetClose">
+      ×
     </button>
 
   </div>
 
 
-</header>
-
-
-
-<!-- EDITOR MAIN -->
-
-<main id="editorMain">
-
-
-<!-- PREVIEW -->
-
-<section class="preview">
-
-
-<div id="viewer">
-
-
-  <div id="stage">
-
-
-    <!-- SNAP GUIDES -->
-
-    <div
-      id="guideX"
-      class="guide vertical"
-    ></div>
-
-
-    <div
-      id="guideY"
-      class="guide horizontal"
-    ></div>
-
-
-  </div>
-
-
-</div>
-
-
-
-<!-- TRANSPORT -->
-
-<div class="transport">
-
-
-<button id="play">
-  ▶
-</button>
-
-
-<span id="clock">
-  00:00.00 / 00:10.00
-</span>
-
-
-<input
-  id="seek"
-  type="range"
-  min="0"
-  max="10"
-  step="0.01"
-  value="0"
->
-
-
-<button id="previewFullscreen">
-  ⛶
-</button>
-
-
-</div>
-
+  <div id="sheetBody"></div>
 
 </section>
 
 
 
-<!-- TIMELINE -->
-
-<section class="timelineArea">
-
-
-<div class="timelineHeader">
-
-
-<button id="timelineMinus">
-  −
-</button>
-
-
-<span>
-  タイムライン
-</span>
-
-
-<button id="timelinePlus">
-  ＋
-</button>
-
-
-</div>
-
-
-
-<div
-  id="timelineScroll"
-  class="timelineScroll"
->
-
-
-<div id="timelineContent">
-
-
-<!-- RULER -->
-
-<div id="ruler"></div>
-
-
-<!-- PLAYHEAD -->
-
-<div id="playhead">
-
-  <div class="playheadHead"></div>
-
-</div>
-
-
-<!-- TRACKS -->
-
-<div id="tracks"></div>
-
-
-</div>
-
-
-</div>
-
-
-</section>
-
-
-</main>
-
-
-
-<!-- =====================================================
-     MAIN TOOLBAR
-===================================================== -->
-
-<nav
-  id="mainToolbar"
-  class="bottomToolbar"
->
-
-
-<label class="toolButton">
-
-<div class="toolIcon">
-＋
-</div>
-
-<span>
-素材
-</span>
-
-<input
-  id="media"
-  type="file"
-  accept="image/*,video/*"
-  multiple
-  hidden
->
-
-</label>
-
-
-
-<button
-  class="toolButton"
-  data-tool="canvas"
->
-
-<div class="toolIcon">
-▣
-</div>
-
-<span>
-キャンバス
-</span>
-
-</button>
-
-
-
-<button
-  class="toolButton"
-  data-tool="music"
->
-
-<div class="toolIcon">
-♫
-</div>
-
-<span>
-音楽
-</span>
-
-</button>
-
-
-
-<button
-  class="toolButton"
-  data-tool="text"
->
-
-<div class="toolIcon">
-T
-</div>
-
-<span>
-テキスト
-</span>
-
-</button>
-
-
-
-<button
-  class="toolButton"
-  data-tool="sticker"
->
-
-<div class="toolIcon">
-★
-</div>
-
-<span>
-ステッカー
-</span>
-
-</button>
-
-
-
-<button
-  class="toolButton"
-  data-tool="pip"
->
-
-<div class="toolIcon">
-◫
-</div>
-
-<span>
-PIP
-</span>
-
-</button>
-
-
-
-<button
-  class="toolButton"
-  data-tool="filter"
->
-
-<div class="toolIcon">
-◐
-</div>
-
-<span>
-フィルター
-</span>
-
-</button>
-
-
-
-<button
-  class="toolButton"
-  data-tool="background"
->
-
-<div class="toolIcon">
-▧
-</div>
-
-<span>
-背景
-</span>
-
-</button>
-
-
-</nav>
-
-
-
-<!-- =====================================================
-     CLIP TOOLBAR
-===================================================== -->
-
-<nav
-  id="clipToolbar"
-  class="bottomToolbar"
-  hidden
->
-
-
-<button
-  class="toolButton"
-  data-action="split"
->
-
-<div class="toolIcon">
-✂
-</div>
-
-<span>
-分割
-</span>
-
-</button>
-
-
-
-<button
-  class="toolButton"
-  data-action="trim"
->
-
-<div class="toolIcon">
-↔
-</div>
-
-<span>
-トリミング
-</span>
-
-</button>
-
-
-
-<button
-  class="toolButton"
-  data-action="speed"
->
-
-<div class="toolIcon">
-1×
-</div>
-
-<span>
-速度
-</span>
-
-</button>
-
-
-
-<button
-  class="toolButton"
-  data-action="volume"
->
-
-<div class="toolIcon">
-🔊
-</div>
-
-<span>
-音量
-</span>
-
-</button>
-
-
-
-<button
-  class="toolButton"
-  data-action="crop"
->
-
-<div class="toolIcon">
-⌗
-</div>
-
-<span>
-クロップ
-</span>
-
-</button>
-
-
-
-<button
-  class="toolButton"
-  data-action="rotate"
->
-
-<div class="toolIcon">
-↻
-</div>
-
-<span>
-回転
-</span>
-
-</button>
-
-
-
-<button
-  class="toolButton"
-  data-action="flip"
->
-
-<div class="toolIcon">
-⇆
-</div>
-
-<span>
-反転
-</span>
-
-</button>
-
-
-
-<button
-  class="toolButton"
-  data-action="duplicate"
->
-
-<div class="toolIcon">
-▣
-</div>
-
-<span>
-複製
-</span>
-
-</button>
-
-
-
-<button
-  class="toolButton"
-  data-action="layer"
->
-
-<div class="toolIcon">
-☷
-</div>
-
-<span>
-レイヤー
-</span>
-
-</button>
-
-
-
-<button
-  class="toolButton"
-  data-action="keyframe"
->
-
-<div class="toolIcon">
-◇
-</div>
-
-<span>
-キー
-</span>
-
-</button>
-
-
-
-<button
-  class="toolButton danger"
-  data-action="delete"
->
-
-<div class="toolIcon">
-⌫
-</div>
-
-<span>
-削除
-</span>
-
-</button>
-
-
-</nav>
-
-
-
-<!-- =====================================================
-     SETTINGS SHEET
-===================================================== -->
-
-<section
-  id="sheet"
-  class="sheet"
-  hidden
->
-
-
-<div class="sheetHandle"></div>
-
-
-<div class="sheetHeader">
-
-
-<b id="sheetTitle">
-設定
-</b>
-
-
-<button id="sheetClose">
-×
-</button>
-
-
-</div>
-
-
-<div id="sheetBody"></div>
-
-
-</section>
-
-
-
-<!-- =====================================================
+<!-- =========================
      TOAST
-===================================================== -->
+========================= -->
 
 <div id="toast"></div>
 
 
 
-<!-- =====================================================
-     PROJECT MENU
-===================================================== -->
-
-<div
-  id="projectMenu"
-  class="modalBackground"
-  hidden
->
-
-
-<div class="projectMenuBox">
-
-
-<h3 id="projectMenuTitle">
-プロジェクト
-</h3>
-
-
-<button
-  id="renameProject"
->
-名前を変更
-</button>
-
-
-<button
-  id="duplicateProject"
->
-複製
-</button>
-
-
-<button
-  id="deleteProject"
-  class="dangerText"
->
-削除
-</button>
-
-
-<button
-  id="closeProjectMenu"
->
-キャンセル
-</button>
-
-
-</div>
-
-
-</div>
-
-
-
-</section>
-
-
-
 <script src="app.js"></script>
 
-
 </body>
-
 </html>
