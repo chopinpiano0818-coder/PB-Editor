@@ -1,126 +1,587 @@
+/* =========================================================
+   PB EDITOR v1.1
+   HOME + EDITOR UI
+========================================================= */
+
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
 }
 
+:root {
+  --bg: #0b0d11;
+  --panel: #12151a;
+  --panel2: #191d24;
+  --panel3: #242a33;
+  --line: #2b3038;
+
+  --text: #f7f7f8;
+  --subtext: #929aa6;
+
+  --accent: #ef5267;
+  --danger: #ff5b68;
+
+  --radius: 12px;
+}
 
 html,
 body {
-  margin: 0;
-
+  width: 100%;
   height: 100%;
+  margin: 0;
 
   overflow: hidden;
 
-  background: #0b0d11;
-
-  color: #f7f7f8;
+  background: var(--bg);
+  color: var(--text);
 
   font-family:
     -apple-system,
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
+
+  overscroll-behavior: none;
 }
 
-
 button,
-.tool,
 input,
-select {
+select,
+textarea {
   font: inherit;
 }
 
-
-button,
-.tool {
+button {
   border: 0;
-
-  color: #fff;
-
+  color: inherit;
   background: transparent;
 }
 
+button,
+label {
+  -webkit-user-select: none;
+  user-select: none;
+}
 
-/* =========================
-   HEADER
-========================= */
 
-header {
-  height: 52px;
+/* =========================================================
+   SCREENS
+========================================================= */
 
+.screen {
+  position: absolute;
+
+  inset: 0;
+
+  display: none;
+
+  background: var(--bg);
+}
+
+.screen.active {
+  display: flex;
+  flex-direction: column;
+}
+
+
+/* =========================================================
+   HOME HEADER
+========================================================= */
+
+.homeHeader {
+  flex: 0 0 auto;
+
+  display: flex;
+  align-items: center;
+
+  padding:
+    calc(12px + env(safe-area-inset-top))
+    18px
+    12px;
+
+  background: #101318;
+
+  border-bottom:
+    1px solid var(--line);
+}
+
+.homeHeader > div:first-child {
+  flex: 1;
+}
+
+.homeHeader h1 {
+  margin: 0;
+
+  font-size: 23px;
+
+  letter-spacing: -0.5px;
+}
+
+.homeHeader small {
+  display: block;
+
+  margin-top: 2px;
+
+  font-size: 10px;
+
+  color: var(--subtext);
+}
+
+.circleButton {
+  width: 40px;
+  height: 40px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 50%;
+
+  background: #222730;
+
+  font-size: 19px;
+}
+
+
+/* =========================================================
+   HOME CONTENT
+========================================================= */
+
+.homeContent {
+  flex: 1;
+
+  overflow-y: auto;
+
+  padding:
+    20px
+    18px
+    calc(30px + env(safe-area-inset-bottom));
+}
+
+.homeContent h2 {
+  margin:
+    0
+    0
+    12px;
+
+  font-size: 16px;
+}
+
+
+/* =========================================================
+   CREATE PROJECT
+========================================================= */
+
+.createArea {
+  margin-bottom: 30px;
+}
+
+.createCards {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 10px;
+}
+
+.createCard {
+  min-height: 128px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  padding: 14px 8px;
+
+  border-radius: 15px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #20252d,
+      #181c22
+    );
+
+  border:
+    1px solid #2d333d;
+
+  box-shadow:
+    0 6px 16px #0003;
+}
+
+.createCard.primary {
+  background:
+    linear-gradient(
+      145deg,
+      #ed5369,
+      #c83e54
+    );
+
+  border-color:
+    transparent;
+}
+
+.createCard:active {
+  transform:
+    scale(0.97);
+}
+
+.createIcon {
+  width: 46px;
+  height: 46px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 13px;
+
+  background: #ffffff18;
+
+  font-size: 24px;
+}
+
+.createCard b {
+  font-size: 14px;
+}
+
+.createCard span {
+  font-size: 9px;
+
+  color: #bbc1c9;
+
+  text-align: center;
+}
+
+.createCard.primary span {
+  color: #ffeef1;
+}
+
+
+/* =========================================================
+   PROJECT AREA
+========================================================= */
+
+.sectionTitle {
   display: flex;
 
   align-items: center;
 
-  gap: 8px;
-
-  padding: 0 8px;
-
-  background: #12151a;
-
-  border-bottom:
-    1px solid #292d34;
+  margin-bottom: 10px;
 }
 
-
-header > b {
+.sectionTitle h2 {
   flex: 1;
+
+  margin: 0;
 }
 
-
-header > div {
-  display: flex;
-
-  gap: 4px;
-}
-
-
-header button {
-  padding: 7px 8px;
+.sectionTitle button {
+  padding: 7px 10px;
 
   border-radius: 8px;
 
-  background: #232831;
+  color: #b6bdc7;
+
+  background: #20242b;
+
+  font-size: 11px;
 }
 
 
-header #export {
-  background: #ed5266;
+/* =========================================================
+   EMPTY PROJECT LIST
+========================================================= */
+
+.emptyProjects {
+  min-height: 180px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  padding: 20px;
+
+  border:
+    1px dashed #303640;
+
+  border-radius: 14px;
+
+  color: var(--subtext);
 }
 
+.emptyIcon {
+  font-size: 38px;
 
-small {
+  margin-bottom: 5px;
+}
+
+.emptyProjects b {
+  color: #d9dce1;
+
+  font-size: 13px;
+}
+
+.emptyProjects span {
   font-size: 10px;
 
-  color: #9098a4;
+  text-align: center;
 }
 
 
-/* =========================
-   MAIN
-========================= */
+/* =========================================================
+   PROJECT CARDS
+========================================================= */
 
-main {
+#projectList {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 12px;
+}
+
+.projectCard {
+  position: relative;
+
+  overflow: hidden;
+
+  border-radius: 12px;
+
+  background: #181c22;
+
+  border:
+    1px solid #292f38;
+}
+
+.projectThumb {
+  position: relative;
+
+  aspect-ratio: 16 / 9;
+
+  display: grid;
+  place-items: center;
+
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      145deg,
+      #272d36,
+      #15181d
+    );
+}
+
+.projectThumb img,
+.projectThumb video {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+.projectThumbIcon {
+  font-size: 28px;
+
+  opacity: 0.6;
+}
+
+.projectDuration {
+  position: absolute;
+
+  right: 5px;
+  bottom: 5px;
+
+  padding: 2px 5px;
+
+  border-radius: 4px;
+
+  background: #000b;
+
+  font-size: 8px;
+}
+
+.projectInfo {
+  display: flex;
+
+  align-items: center;
+
+  gap: 6px;
+
+  padding: 9px;
+}
+
+.projectInfoText {
+  flex: 1;
+
+  min-width: 0;
+}
+
+.projectInfo b {
+  display: block;
+
+  overflow: hidden;
+
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+
+  font-size: 11px;
+}
+
+.projectInfo small {
+  display: block;
+
+  margin-top: 3px;
+
+  color: var(--subtext);
+
+  font-size: 8px;
+}
+
+.projectMore {
+  width: 28px;
+  height: 28px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 50%;
+
+  font-size: 18px;
+}
+
+.projectMore:active {
+  background: #ffffff14;
+}
+
+
+/* =========================================================
+   EDITOR HEADER
+========================================================= */
+
+.editorHeader {
+  flex: 0 0 auto;
+
   height:
     calc(
-      100dvh - 118px
+      52px +
+      env(safe-area-inset-top)
     );
 
   display: flex;
 
+  align-items: flex-end;
+
+  gap: 7px;
+
+  padding:
+    env(safe-area-inset-top)
+    8px
+    6px;
+
+  background: #12151a;
+
+  border-bottom:
+    1px solid var(--line);
+}
+
+.headerButton {
+  width: 38px;
+  height: 38px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 9px;
+
+  background: #222730;
+
+  font-size: 19px;
+}
+
+.projectTitle {
+  flex: 1;
+
+  min-width: 0;
+
+  display: flex;
+
   flex-direction: column;
 }
 
+.projectTitle input {
+  width: 100%;
 
-/* =========================
-   PREVIEW
-========================= */
+  border: 0;
 
-.preview {
-  min-height: 0;
+  outline: 0;
 
+  padding: 0;
+
+  background: transparent;
+
+  color: white;
+
+  font-weight: 650;
+
+  font-size: 13px;
+}
+
+.projectTitle small {
+  margin-top: 2px;
+
+  color: #828a95;
+
+  font-size: 8px;
+}
+
+.headerActions {
+  display: flex;
+
+  align-items: center;
+
+  gap: 4px;
+}
+
+.exportButton {
+  height: 38px;
+
+  padding: 0 12px;
+
+  border-radius: 9px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #f15a70,
+      #dc4057
+    );
+
+  font-size: 11px;
+
+  font-weight: 650;
+}
+
+
+/* =========================================================
+   EDITOR MAIN
+========================================================= */
+
+#editorMain {
   flex: 1;
+
+  min-height: 0;
 
   display: flex;
 
@@ -128,24 +589,45 @@ main {
 }
 
 
-#viewer {
+/* =========================================================
+   PREVIEW
+========================================================= */
+
+.preview {
+  flex: 1;
+
   min-height: 0;
 
+  display: flex;
+
+  flex-direction: column;
+}
+
+#viewer {
   flex: 1;
+
+  min-height: 0;
 
   display: grid;
 
   place-items: center;
 
-  background: #07080a;
+  overflow: hidden;
 
-  padding: 8px;
+  padding: 9px;
+
+  background:
+    radial-gradient(
+      circle at center,
+      #171a20,
+      #07080a 70%
+    );
 }
 
 
-/* =========================
-   CANVAS
-========================= */
+/* =========================================================
+   STAGE
+========================================================= */
 
 #stage {
   position: relative;
@@ -153,36 +635,34 @@ main {
   width:
     min(
       42vh,
-      90vw
+      88vw
     );
 
-  aspect-ratio:
-    9 / 16;
-
-  background: #111;
+  aspect-ratio: 9 / 16;
 
   overflow: hidden;
+
+  background: #111;
 
   touch-action: none;
 
   box-shadow:
-    0 0 0 1px #30343c;
+    0 0 0 1px #31363e,
+    0 10px 30px #0007;
 }
 
 
-/* =========================
-   LAYERS / PIP
-========================= */
+/* =========================================================
+   MEDIA LAYERS
+========================================================= */
 
 .layer {
   position: absolute;
 
   left: 0;
-
   top: 0;
 
-  transform-origin:
-    center;
+  transform-origin: center;
 
   touch-action: none;
 
@@ -193,20 +673,17 @@ main {
     opacity;
 }
 
-
 .layer img,
 .layer video {
   display: block;
 
   width: 100%;
-
   height: 100%;
 
   object-fit: cover;
 
   pointer-events: none;
 }
-
 
 .layer.text {
   display: grid;
@@ -216,24 +693,85 @@ main {
   white-space: nowrap;
 
   font-weight: 700;
-}
 
+  text-align: center;
+}
 
 .layer.selected {
   outline:
-    2px solid white;
+    2px solid #fff;
 
-  outline-offset:
-    2px;
+  outline-offset: 2px;
+}
+
+.layer.selected::after {
+  content: "";
+
+  position: absolute;
+
+  right: -9px;
+  bottom: -9px;
+
+  width: 15px;
+  height: 15px;
+
+  border-radius: 50%;
+
+  background: white;
+
+  border:
+    2px solid var(--accent);
+
+  box-shadow:
+    0 2px 6px #0008;
 }
 
 
-/* =========================
-   PLAY CONTROLS
-========================= */
+/* =========================================================
+   SNAP GUIDES
+========================================================= */
+
+.guide {
+  position: absolute;
+
+  z-index: 9999;
+
+  display: none;
+
+  pointer-events: none;
+
+  background: #ff4263;
+}
+
+.guide.vertical {
+  width: 1px;
+
+  top: 0;
+  bottom: 0;
+
+  left: 50%;
+}
+
+.guide.horizontal {
+  height: 1px;
+
+  left: 0;
+  right: 0;
+
+  top: 50%;
+}
+
+.guide.show {
+  display: block;
+}
+
+
+/* =========================================================
+   TRANSPORT
+========================================================= */
 
 .transport {
-  height: 42px;
+  flex: 0 0 42px;
 
   display: flex;
 
@@ -243,19 +781,26 @@ main {
 
   padding: 4px 8px;
 
-  background: #15181e;
+  background: #14171c;
+
+  border-top:
+    1px solid #252a31;
 }
 
+.transport button {
+  width: 31px;
+  height: 31px;
 
-.transport input {
-  flex: 1;
+  display: grid;
+  place-items: center;
 
-  min-width: 0;
+  border-radius: 50%;
+
+  background: #242a32;
 }
-
 
 .transport span {
-  font-size: 10px;
+  font-size: 9px;
 
   white-space: nowrap;
 
@@ -263,198 +808,416 @@ main {
     tabular-nums;
 }
 
-
-/* =========================
-   TIMELINE
-========================= */
-
-.timeline {
-  height: 155px;
-
-  background: #101318;
-
-  overflow: auto;
-
-  padding: 8px;
-}
-
-
-.track {
-  height: 35px;
-
-  margin-bottom: 5px;
-
-  position: relative;
-
-  background: #191d24;
-
-  border-radius: 5px;
-}
-
-
-.clip {
-  height: 100%;
-
-  position: absolute;
-
-  border:
-    1px solid #596271;
-
-  background: #343c49;
-
-  border-radius: 5px;
-
-  padding: 8px;
-
-  font-size: 10px;
-
-  overflow: hidden;
-
-  white-space: nowrap;
-}
-
-
-.clip.selected {
-  border:
-    2px solid #ed5266;
-}
-
-
-.clip.video {
-  background: #344650;
-}
-
-
-.clip.text {
-  background: #493d58;
-}
-
-
-/* =========================
-   MAIN TOOLBAR
-========================= */
-
-nav,
-#clipbar {
-  height: 66px;
-
-  display: flex;
-
-  align-items: stretch;
-
-  gap: 2px;
-
-  padding: 4px;
-
-  background: #15181e;
-
-  border-top:
-    1px solid #292d34;
-
-  overflow-x: auto;
-}
-
-
-nav > *,
-#clipbar > * {
-  min-width: 65px;
-
+.transport input {
   flex: 1;
+
+  min-width: 0;
+
+  accent-color: var(--accent);
 }
 
 
-.tool,
-#clipbar button {
+/* =========================================================
+   TIMELINE
+========================================================= */
+
+.timelineArea {
+  flex: 0 0 170px;
+
+  min-height: 0;
+
   display: flex;
 
   flex-direction: column;
+
+  background: #0e1115;
+
+  border-top:
+    1px solid #282d35;
+}
+
+.timelineHeader {
+  flex: 0 0 29px;
+
+  display: flex;
 
   align-items: center;
 
   justify-content: center;
 
-  gap: 3px;
+  gap: 15px;
 
-  font-size: 20px;
+  color: #929aa6;
 
-  border-radius: 7px;
-}
-
-
-.tool span,
-#clipbar span {
   font-size: 9px;
 }
 
+.timelineHeader button {
+  width: 25px;
+  height: 22px;
 
-/* =========================
-   SELECTED CLIP TOOLBAR
-========================= */
+  border-radius: 5px;
 
-#clipbar {
-  position: fixed;
+  background: #242931;
 
-  bottom: 0;
+  font-size: 15px;
+}
 
-  left: 0;
+.timelineScroll {
+  flex: 1;
 
-  right: 0;
+  position: relative;
 
-  z-index: 40;
+  overflow-x: auto;
+  overflow-y: auto;
+
+  scrollbar-width: none;
+
+  touch-action: pan-x pan-y;
+}
+
+.timelineScroll::-webkit-scrollbar {
+  display: none;
+}
+
+#timelineContent {
+  position: relative;
+
+  min-width: 100%;
+
+  width: 900px;
+
+  padding:
+    20px
+    20px
+    15px;
 }
 
 
-/* =========================
-   BOTTOM SHEET
-========================= */
+/* =========================================================
+   RULER
+========================================================= */
 
-#sheet {
-  position: fixed;
+#ruler {
+  position: absolute;
 
-  left: 0;
+  top: 0;
+  left: 20px;
+  right: 20px;
 
-  right: 0;
+  height: 19px;
 
-  bottom: 0;
+  border-bottom:
+    1px solid #2c3139;
 
-  z-index: 80;
-
-  max-height: 52vh;
-
-  overflow: auto;
-
-  background: #1a1e25;
-
-  border-radius:
-    16px 16px 0 0;
-
-  padding: 12px;
-
-  box-shadow:
-    0 -10px 30px #0008;
+  background:
+    repeating-linear-gradient(
+      to right,
+      transparent 0,
+      transparent 49px,
+      #444b55 50px
+    );
 }
 
 
-.sheetHead {
+/* =========================================================
+   PLAYHEAD
+========================================================= */
+
+#playhead {
+  position: absolute;
+
+  z-index: 100;
+
+  top: 15px;
+  bottom: 0;
+
+  left: 50%;
+
+  width: 1px;
+
+  background: #fff;
+
+  pointer-events: none;
+}
+
+.playheadHead {
+  position: absolute;
+
+  top: -5px;
+  left: -5px;
+
+  width: 11px;
+  height: 11px;
+
+  border-radius: 3px;
+
+  background: #fff;
+}
+
+
+/* =========================================================
+   TRACKS
+========================================================= */
+
+#tracks {
+  position: relative;
+
+  padding-top: 4px;
+}
+
+.track {
+  position: relative;
+
+  height: 36px;
+
+  margin-bottom: 5px;
+
+  border-radius: 5px;
+
+  background: #181c22;
+}
+
+.clip {
+  position: absolute;
+
+  top: 0;
+
+  height: 100%;
+
+  overflow: hidden;
+
   display: flex;
-
-  justify-content:
-    space-between;
 
   align-items: center;
 
-  margin-bottom: 12px;
+  padding: 0 9px;
+
+  border-radius: 5px;
+
+  border:
+    1px solid #59616d;
+
+  background:
+    linear-gradient(
+      180deg,
+      #3c4451,
+      #303743
+    );
+
+  color: white;
+
+  font-size: 9px;
+
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+}
+
+.clip.video {
+  background:
+    linear-gradient(
+      180deg,
+      #3b4d57,
+      #2f3d45
+    );
+}
+
+.clip.image {
+  background:
+    linear-gradient(
+      180deg,
+      #424958,
+      #343b48
+    );
+}
+
+.clip.text {
+  background:
+    linear-gradient(
+      180deg,
+      #59496a,
+      #463a55
+    );
+}
+
+.clip.audio {
+  background:
+    linear-gradient(
+      180deg,
+      #395846,
+      #2c4738
+    );
+}
+
+.clip.selected {
+  border:
+    2px solid var(--accent);
+
+  box-shadow:
+    0 0 0 1px #000;
 }
 
 
-.sheetHead button {
-  font-size: 22px;
+/* =========================================================
+   BOTTOM TOOLBARS
+========================================================= */
+
+.bottomToolbar {
+  flex: 0 0 auto;
+
+  height:
+    calc(
+      68px +
+      env(safe-area-inset-bottom)
+    );
+
+  display: flex;
+
+  align-items: flex-start;
+
+  gap: 2px;
+
+  overflow-x: auto;
+
+  padding:
+    4px
+    4px
+    env(safe-area-inset-bottom);
+
+  background: #15181e;
+
+  border-top:
+    1px solid #292e36;
+
+  scrollbar-width: none;
+}
+
+.bottomToolbar::-webkit-scrollbar {
+  display: none;
+}
+
+.toolButton {
+  flex: 0 0 66px;
+
+  height: 60px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 3px;
+
+  border-radius: 8px;
+
+  color: #f4f5f7;
+}
+
+.toolButton:active {
+  background: #292e36;
+}
+
+.toolIcon {
+  min-height: 25px;
+
+  display: grid;
+
+  place-items: center;
+
+  font-size: 20px;
+}
+
+.toolButton span {
+  font-size: 9px;
+}
+
+.toolButton.danger {
+  color: #ff6976;
 }
 
 
-/* =========================
-   OPTION BUTTONS
-========================= */
+/* =========================================================
+   BOTTOM SHEET
+========================================================= */
+
+.sheet {
+  position: fixed;
+
+  z-index: 500;
+
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  max-height: 58vh;
+
+  overflow-y: auto;
+
+  padding:
+    7px
+    14px
+    calc(
+      16px +
+      env(safe-area-inset-bottom)
+    );
+
+  border-radius:
+    18px
+    18px
+    0
+    0;
+
+  background: #1a1e25;
+
+  box-shadow:
+    0 -12px 35px #0009;
+}
+
+.sheetHandle {
+  width: 38px;
+  height: 4px;
+
+  margin:
+    0 auto
+    8px;
+
+  border-radius: 999px;
+
+  background: #535b67;
+}
+
+.sheetHeader {
+  display: flex;
+
+  align-items: center;
+
+  margin-bottom: 13px;
+}
+
+.sheetHeader b {
+  flex: 1;
+
+  font-size: 14px;
+}
+
+.sheetHeader button {
+  width: 34px;
+  height: 34px;
+
+  border-radius: 50%;
+
+  background: #292f38;
+
+  font-size: 20px;
+}
+
+
+/* =========================================================
+   SHEET OPTIONS
+========================================================= */
 
 .options {
   display: flex;
@@ -462,121 +1225,308 @@ nav > *,
   gap: 8px;
 
   overflow-x: auto;
-}
 
+  padding-bottom: 5px;
+}
 
 .options button {
-  min-width: 78px;
+  flex: 0 0 auto;
 
-  padding: 13px 8px;
+  min-width: 76px;
 
-  background: #292f39;
+  padding: 12px 10px;
 
   border-radius: 9px;
+
+  background: #292f38;
+
+  font-size: 11px;
+}
+
+.options button:active {
+  background: #3a414c;
 }
 
 
-/* =========================
-   FORM FIELDS
-========================= */
+/* =========================================================
+   INPUT FIELDS
+========================================================= */
 
 .fields {
   display: grid;
 
   grid-template-columns:
-    1fr 1fr;
+    repeat(2, minmax(0, 1fr));
 
-  gap: 8px;
+  gap: 10px;
 }
-
 
 .fields label {
-  font-size: 11px;
+  color: #a8afb9;
 
-  color: #a2a9b3;
+  font-size: 10px;
 }
 
-
 .fields input,
-.fields select {
+.fields select,
+.fields textarea {
   display: block;
 
   width: 100%;
 
-  margin-top: 4px;
+  margin-top: 5px;
 
   padding: 9px;
 
-  border-radius: 7px;
-
   border:
-    1px solid #3d4551;
+    1px solid #3b424d;
 
-  background: #11151b;
+  border-radius: 8px;
 
-  color: #fff;
+  outline: 0;
+
+  background: #11151a;
+
+  color: white;
+}
+
+.fields input[type="range"] {
+  padding: 0;
+
+  accent-color: var(--accent);
 }
 
 
-/* =========================
+/* =========================================================
    TOAST
-========================= */
+========================================================= */
 
 #toast {
   position: fixed;
 
-  left: 50%;
+  z-index: 1000;
 
-  bottom: 80px;
+  left: 50%;
+  bottom:
+    calc(
+      82px +
+      env(safe-area-inset-bottom)
+    );
 
   transform:
     translateX(-50%);
 
-  z-index: 200;
+  display: none;
 
-  background: #000d;
+  max-width: 80vw;
 
   padding: 9px 14px;
 
   border-radius: 9px;
 
-  display: none;
+  background: #050608e8;
+
+  color: white;
+
+  box-shadow:
+    0 6px 20px #0007;
+
+  font-size: 11px;
+
+  text-align: center;
+
+  white-space: nowrap;
 }
 
 
-/* =========================
-   iPad LANDSCAPE
-========================= */
+/* =========================================================
+   PROJECT MENU
+========================================================= */
+
+.modalBackground {
+  position: fixed;
+
+  z-index: 2000;
+
+  inset: 0;
+
+  display: grid;
+
+  place-items: center;
+
+  padding: 20px;
+
+  background: #000a;
+
+  backdrop-filter:
+    blur(3px);
+
+  -webkit-backdrop-filter:
+    blur(3px);
+}
+
+.projectMenuBox {
+  width:
+    min(
+      320px,
+      90vw
+    );
+
+  overflow: hidden;
+
+  border-radius: 15px;
+
+  background: #1b1f26;
+
+  box-shadow:
+    0 20px 50px #000b;
+}
+
+.projectMenuBox h3 {
+  margin: 0;
+
+  padding: 17px;
+
+  border-bottom:
+    1px solid #30353e;
+
+  font-size: 14px;
+}
+
+.projectMenuBox button {
+  width: 100%;
+
+  padding: 14px 16px;
+
+  border-bottom:
+    1px solid #292e36;
+
+  text-align: left;
+
+  font-size: 12px;
+}
+
+.projectMenuBox button:active {
+  background: #282e37;
+}
+
+.dangerText {
+  color: #ff6875;
+}
+
+
+/* =========================================================
+   DISABLED
+========================================================= */
+
+button:disabled {
+  opacity: 0.35;
+}
+
+
+/* =========================================================
+   iPAD LANDSCAPE
+========================================================= */
 
 @media (orientation: landscape) {
 
-  main {
+  #editorMain {
     flex-direction: row;
   }
 
-
   .preview {
-    flex: 1;
+    flex: 1.2;
   }
 
+  .timelineArea {
+    flex:
+      0 0
+      43%;
 
-  .timeline {
     height: auto;
 
-    width: 42%;
-  }
+    border-top: 0;
 
+    border-left:
+      1px solid #292e36;
+  }
 
   #stage {
     height:
       min(
         65vh,
         calc(
-          100vw * 0.42
+          100vw * 0.39
         )
       );
 
     width: auto;
+  }
+
+}
+
+
+/* =========================================================
+   SMALL iPHONE / NARROW SCREEN
+========================================================= */
+
+@media (max-width: 500px) {
+
+  .createCards {
+    grid-template-columns:
+      1fr 1fr;
+  }
+
+  .createCard:first-child {
+    grid-column:
+      1 / -1;
+
+    min-height: 105px;
+  }
+
+  .homeContent {
+    padding-left: 13px;
+    padding-right: 13px;
+  }
+
+  .headerButton {
+    width: 34px;
+  }
+
+  .exportButton {
+    padding:
+      0 9px;
+  }
+
+}
+
+
+/* =========================================================
+   iPAD / LARGE DISPLAY
+========================================================= */
+
+@media (min-width: 800px) {
+
+  .homeContent {
+    width: min(900px, 100%);
+
+    margin: 0 auto;
+  }
+
+  .createCards {
+    gap: 15px;
+  }
+
+  .createCard {
+    min-height: 150px;
+  }
+
+  #projectList {
+    grid-template-columns:
+      repeat(
+        3,
+        minmax(0, 1fr)
+      );
   }
 
 }
