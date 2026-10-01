@@ -2,166 +2,294 @@
 "use strict";
 
 /* =========================================================
-   PB EDITOR v3.0 — EDITOR REBUILD
+   PB EDITOR v3.1 STUDIO
 ========================================================= */
 
 const $ = s => document.querySelector(s);
 const $$ = s => [...document.querySelectorAll(s)];
-const uid = () =>
-  Date.now().toString(36) + Math.random().toString(36).slice(2);
 
-const DB_NAME = "PBEditorV3";
-const STORE = "media";
-const PROJECT_KEY = "pb-editor-v3-projects";
+const uid = () =>
+  Date.now().toString(36) +
+  Math.random().toString(36).slice(2);
+
+const clamp = (v, min, max) =>
+  Math.max(min, Math.min(max, v));
+
+const clone = v => structuredClone(v);
+
+const DB_NAME = "PBEditorV31";
+const DB_STORE = "media";
+const META_KEY = "pb-editor-v31-projects";
 
 let projects = [];
-let projectId = null;
+let currentProjectId = null;
 
 let S = freshState();
 
 let mediaURLs = new Map();
 let canvasNodes = new Map();
 
-let timelineZoom = 1;
-let timelineBusy = false;
-let playingRAF = 0;
+let zoom = 1;
+let scrollSync = false;
+
+let raf = 0;
 let lastFrame = 0;
 
 let pointers = new Map();
 let canvasGesture = null;
 let timelineGesture = null;
 
-let pendingSheetApply = null;
-let textBackup = null;
+let copiedItem = null;
+
+let selectedAnimationTab = "in";
+let selectedAnimationName = null;
+
+let currentAudioMode = "music";
+
+let cropBackup = null;
+let cropState = null;
+
+let historyGestureStarted = false;
+
+let audioContext = null;
+
+/* =========================================================
+   STATE
+========================================================= */
 
 function freshState() {
   return {
     duration: 10,
     time: 0,
+
     aspect: "9:16",
     background: "#111111",
-    items: [],
-    selected: null,
+
     playing: false,
+    selected: null,
+
+    items: [],
+
     undo: [],
     redo: []
   };
 }
 
 /* =========================================================
-   HELPERS
+   DEFAULT ITEM
 ========================================================= */
 
-function selectedItem() {
-  return S.items.find(x => x.id === S.selected) || null;
+function baseItem() {
+  return {
+    id: uid(),
+
+    type: "image",
+    track: "pip",
+
+    name: "素材",
+
+    start: 0,
+    end: 5,
+
+    mediaId: null,
+
+    sourceDuration: 5,
+    sourceIn: 0,
+    sourceOut: 5,
+
+    x: 20,
+    y: 20,
+    w: 200,
+    h: 200,
+
+    rotation: 0,
+
+    flipX: false,
+    flipY: false,
+
+    opacity: 100,
+
+    speed: 1,
+    volume: 100,
+
+    fadeIn: 0,
+    fadeOut: 0,
+
+    brightness: 100,
+    contrast: 100,
+    saturation: 100,
+
+    crop: {
+      x: 0,
+      y: 0,
+      w: 1,
+      h: 1
+    },
+
+    locked: false,
+    visible: true,
+
+    keyframes: [],
+
+    animation: {
+      in: null,
+      out: null,
+      loop: null,
+      pb: null
+    }
+  };
 }
 
-function clamp(v, min, max) {
-  return Math.max(min, Math.min(max, v));
-}
+/* =========================================================
+   FORMAT
+========================================================= */
 
-function formatTime(v) {
-  v = Math.max(0, Number(v) || 0);
+function formatTime(value) {
+  value = Math.max(0, Number(value) || 0);
 
-  const m = Math.floor(v / 60);
-  const s = v % 60;
+  const min = Math.floor(value / 60);
+  const sec = value % 60;
 
   return (
-    String(m).padStart(2, "0") +
+    String(min).padStart(2, "0") +
     ":" +
-    s.toFixed(2).padStart(5, "0")
+    sec.toFixed(2).padStart(5, "0")
   );
 }
 
 function toast(message) {
-  const e = $("#toast");
+  const el = $("#toast");
 
-  e.textContent = message;
-  e.style.display = "block";
+  el.textContent = message;
+  el.style.display = "block";
 
   clearTimeout(toast.timer);
 
   toast.timer = setTimeout(() => {
-    e.style.display = "none";
-  }, 1400);
+    el.style.display = "none";
+  }, 1500);
 }
 
-function showScreen(name) {
-  $("#homeScreen").classList.toggle("active", name === "home");
-  $("#editorScreen").classList.toggle("active", name === "editor");
+function selectedItem() {
+  return (
+    S.items.find(x => x.id === S.selected) ||
+    null
+  );
 }
 
 /* =========================================================
-   INDEXED DB
+   SCREEN
+========================================================= */
+
+function showScreen(name) {
+  $("#homeScreen").classList.toggle(
+    "active",
+    name === "home"
+  );
+
+  $("#editorScreen").classList.toggle(
+    "active",
+    name === "editor"
+  );
+}
+
+/* =========================================================
+   DATABASE
 ========================================================= */
 
 function openDB() {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, 1);
+    const request =
+      indexedDB.open(DB_NAME, 1);
 
-    req.onupgradeneeded = () => {
-      if (!req.result.objectStoreNames.contains(STORE)) {
-        req.result.createObjectStore(STORE);
+    request.onupgradeneeded = () => {
+      const db = request.result;
+
+      if (
+        !db.objectStoreNames.contains(DB_STORE)
+      ) {
+        db.createObjectStore(DB_STORE);
       }
     };
 
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
+    request.onsuccess = () =>
+      resolve(request.result);
+
+    request.onerror = () =>
+      reject(request.error);
   });
 }
 
-async function saveBlob(id, blob) {
+async function putBlob(id, blob) {
   const db = await openDB();
 
   return new Promise((resolve, reject) => {
-    const tx = db.transaction(STORE, "readwrite");
-    tx.objectStore(STORE).put(blob, id);
+    const tx =
+      db.transaction(DB_STORE, "readwrite");
 
-    tx.oncomplete = resolve;
+    tx.objectStore(DB_STORE).put(blob, id);
+
+    tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });
 }
 
-async function loadBlob(id) {
+async function getBlob(id) {
+  if (!id) return null;
+
   const db = await openDB();
 
   return new Promise((resolve, reject) => {
-    const req = db.transaction(STORE).objectStore(STORE).get(id);
+    const req =
+      db.transaction(DB_STORE)
+        .objectStore(DB_STORE)
+        .get(id);
 
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
+    req.onsuccess = () =>
+      resolve(req.result || null);
+
+    req.onerror = () =>
+      reject(req.error);
   });
 }
 
-async function deleteBlob(id) {
+async function removeBlob(id) {
   const db = await openDB();
 
   return new Promise(resolve => {
-    const tx = db.transaction(STORE, "readwrite");
-    tx.objectStore(STORE).delete(id);
+    const tx =
+      db.transaction(DB_STORE, "readwrite");
+
+    tx.objectStore(DB_STORE).delete(id);
+
     tx.oncomplete = resolve;
   });
 }
 
-async function getMediaURL(it) {
-  if (!it.mediaId) return "";
+/* =========================================================
+   OBJECT URL CACHE
+========================================================= */
 
-  if (mediaURLs.has(it.mediaId)) {
-    return mediaURLs.get(it.mediaId);
+async function mediaURL(item) {
+  if (!item.mediaId) return "";
+
+  if (mediaURLs.has(item.mediaId)) {
+    return mediaURLs.get(item.mediaId);
   }
 
-  const blob = await loadBlob(it.mediaId);
+  const blob = await getBlob(item.mediaId);
 
   if (!blob) return "";
 
-  const url = URL.createObjectURL(blob);
+  const url =
+    URL.createObjectURL(blob);
 
-  mediaURLs.set(it.mediaId, url);
+  mediaURLs.set(item.mediaId, url);
 
   return url;
 }
 
-function releaseMediaURLs() {
+function releaseObjectURLs() {
   for (const url of mediaURLs.values()) {
     URL.revokeObjectURL(url);
   }
@@ -173,9 +301,12 @@ function releaseMediaURLs() {
    PROJECT STORAGE
 ========================================================= */
 
-function loadProjectList() {
+function loadProjects() {
   try {
-    projects = JSON.parse(localStorage.getItem(PROJECT_KEY)) || [];
+    projects =
+      JSON.parse(
+        localStorage.getItem(META_KEY)
+      ) || [];
   } catch {
     projects = [];
   }
@@ -184,29 +315,40 @@ function loadProjectList() {
 }
 
 function persistProjects() {
-  localStorage.setItem(PROJECT_KEY, JSON.stringify(projects));
+  localStorage.setItem(
+    META_KEY,
+    JSON.stringify(projects)
+  );
 }
 
 function currentProject() {
-  return projects.find(x => x.id === projectId);
+  return projects.find(
+    p => p.id === currentProjectId
+  );
 }
 
-function createProject() {
-  const p = {
+function makeProject() {
+  const project = {
     id: uid(),
+
     name: "新しいプロジェクト",
+
     created: Date.now(),
     updated: Date.now(),
+
     duration: 10,
+
     aspect: "9:16",
     background: "#111111",
+
     items: []
   };
 
-  projects.unshift(p);
+  projects.unshift(project);
+
   persistProjects();
 
-  return p;
+  return project;
 }
 
 function saveProject() {
@@ -214,25 +356,30 @@ function saveProject() {
 
   if (!p) return;
 
-  p.name = $("#projectName").value.trim() || "名称未設定";
+  p.name =
+    $("#projectName").value.trim() ||
+    "名称未設定";
+
   p.updated = Date.now();
 
   p.duration = S.duration;
   p.aspect = S.aspect;
   p.background = S.background;
-  p.items = structuredClone(S.items);
+
+  p.items = clone(S.items);
 
   persistProjects();
 
-  $("#saveStatus").textContent = "保存済み";
+  $("#saveStatus").textContent =
+    "保存済み";
 }
 
 /* =========================================================
    HISTORY
 ========================================================= */
 
-function stateSnapshot() {
-  return structuredClone({
+function snapshot() {
+  return clone({
     duration: S.duration,
     aspect: S.aspect,
     background: S.background,
@@ -241,30 +388,40 @@ function stateSnapshot() {
 }
 
 function pushHistory() {
-  S.undo.push(stateSnapshot());
+  S.undo.push(snapshot());
 
-  if (S.undo.length > 50) {
+  if (S.undo.length > 60) {
     S.undo.shift();
   }
 
   S.redo.length = 0;
 
-  $("#saveStatus").textContent = "編集中";
+  $("#saveStatus").textContent =
+    "編集中";
 }
 
-function restoreSnapshot(snapshot) {
-  S.duration = snapshot.duration;
-  S.aspect = snapshot.aspect;
-  S.background = snapshot.background;
-  S.items = structuredClone(snapshot.items);
+async function restoreSnapshot(snap) {
+  S.duration = snap.duration;
+  S.aspect = snap.aspect;
+  S.background = snap.background;
+
+  S.items = clone(snap.items);
 
   S.selected = null;
-  S.time = clamp(S.time, 0, S.duration);
 
-  rebuildCanvas();
+  S.time = clamp(
+    S.time,
+    0,
+    S.duration
+  );
+
+  await rebuildCanvas();
+
   renderTimeline();
   renderScene();
+
   updateToolbar();
+
   saveProject();
 }
 
@@ -274,9 +431,11 @@ function restoreSnapshot(snapshot) {
 
 async function renderHome() {
   const grid = $("#projectGrid");
+
   grid.innerHTML = "";
 
-  $("#storageStatus").textContent = "IndexedDB";
+  $("#storageStatus").textContent =
+    "IndexedDB";
 
   if (!projects.length) {
     grid.innerHTML = `
@@ -297,22 +456,36 @@ async function renderHome() {
   }
 
   for (const p of projects) {
-    const card = document.createElement("article");
-    card.className = "projectCard";
+    const card =
+      document.createElement("article");
 
-    const thumb = document.createElement("div");
-    thumb.className = "projectThumbnail";
+    card.className =
+      "projectCard";
+
+    const thumb =
+      document.createElement("div");
+
+    thumb.className =
+      "projectThumbnail";
 
     const first =
-      p.items.find(x => x.type === "image" || x.type === "video");
+      p.items.find(
+        x =>
+          x.type === "image" ||
+          x.type === "video"
+      );
 
     if (first) {
       try {
-        const url = await getMediaURL(first);
+        const url =
+          await mediaURL(first);
 
-        const media = document.createElement(
-          first.type === "video" ? "video" : "img"
-        );
+        const media =
+          document.createElement(
+            first.type === "video"
+              ? "video"
+              : "img"
+          );
 
         media.src = url;
 
@@ -330,78 +503,124 @@ async function renderHome() {
       thumb.textContent = "🎬";
     }
 
-    const duration = document.createElement("span");
-    duration.className = "duration";
-    duration.textContent = formatTime(p.duration || 0);
+    const duration =
+      document.createElement("span");
+
+    duration.className =
+      "duration";
+
+    duration.textContent =
+      formatTime(p.duration || 0);
 
     thumb.append(duration);
 
-    const info = document.createElement("div");
-    info.className = "projectInfo";
+    const info =
+      document.createElement("div");
 
-    const title = document.createElement("b");
-    title.textContent = p.name;
+    info.className =
+      "projectInfo";
 
-    const date = document.createElement("small");
-    date.textContent = new Date(p.updated).toLocaleString("ja-JP");
+    const name =
+      document.createElement("b");
 
-    info.append(title, date);
+    name.textContent =
+      p.name || "名称未設定";
+
+    const date =
+      document.createElement("small");
+
+    date.textContent =
+      new Date(
+        p.updated
+      ).toLocaleString("ja-JP");
+
+    info.append(name, date);
+
     card.append(thumb, info);
 
-    card.onclick = () => openProject(p.id);
+    card.onclick = () =>
+      openProject(p.id);
 
-    let longTimer = null;
+    let timer = null;
 
-    card.addEventListener("pointerdown", () => {
-      longTimer = setTimeout(() => {
-        projectMenu(p.id);
-      }, 650);
-    });
+    card.addEventListener(
+      "pointerdown",
+      () => {
+        timer = setTimeout(
+          () => projectMenu(p.id),
+          650
+        );
+      }
+    );
 
-    card.addEventListener("pointerup", () => clearTimeout(longTimer));
-    card.addEventListener("pointermove", () => clearTimeout(longTimer));
+    for (
+      const type of [
+        "pointerup",
+        "pointercancel",
+        "pointermove"
+      ]
+    ) {
+      card.addEventListener(
+        type,
+        () => clearTimeout(timer)
+      );
+    }
 
     grid.append(card);
   }
 }
 
+/* =========================================================
+   PROJECT MENU
+========================================================= */
+
 function projectMenu(id) {
-  const p = projects.find(x => x.id === id);
+  const p =
+    projects.find(x => x.id === id);
 
   if (!p) return;
 
-  const result = prompt(
-    "名前を変更できます。\n削除する場合は DELETE と入力してください。",
+  const answer = prompt(
+    "名前を変更できます。\n" +
+    "COPY = プロジェクト複製\n" +
+    "DELETE = 削除",
     p.name
   );
 
-  if (result === null) return;
+  if (answer === null) return;
 
-  if (result === "DELETE") {
-    if (!confirm("このプロジェクトを削除しますか？")) return;
+  if (
+    answer.trim().toUpperCase() ===
+    "COPY"
+  ) {
+    const copy = clone(p);
 
-    const usedMedia = new Set(p.items.map(x => x.mediaId).filter(Boolean));
+    copy.id = uid();
 
-    projects = projects.filter(x => x.id !== id);
+    copy.name =
+      p.name + " コピー";
+
+    copy.created = Date.now();
+    copy.updated = Date.now();
+
+    projects.unshift(copy);
+
     persistProjects();
-
-    /* 他プロジェクトで使われていないBlobだけ消す */
-    for (const mediaId of usedMedia) {
-      const stillUsed = projects.some(project =>
-        project.items.some(it => it.mediaId === mediaId)
-      );
-
-      if (!stillUsed) {
-        deleteBlob(mediaId).catch(() => {});
-      }
-    }
-
     renderHome();
+
     return;
   }
 
-  if (result.trim()) {
-    p.name = result.trim();
+  if (
+    answer.trim().toUpperCase() ===
+    "DELETE"
+  ) {
+    deleteProject(id);
+    return;
+  }
+
+  if (answer.trim()) {
+    p.name = answer.trim();
     p.updated = Date.now();
 
     persistProjects();
@@ -410,11 +629,60 @@ function projectMenu(id) {
 }
 
 /* =========================================================
+   DELETE PROJECT
+========================================================= */
+
+async function deleteProject(id) {
+  if (
+    !confirm(
+      "このプロジェクトを削除しますか？"
+    )
+  ) {
+    return;
+  }
+
+  const project =
+    projects.find(p => p.id === id);
+
+  if (!project) return;
+
+  const mediaIds =
+    new Set(
+      project.items
+        .map(x => x.mediaId)
+        .filter(Boolean)
+    );
+
+  projects =
+    projects.filter(p => p.id !== id);
+
+  persistProjects();
+
+  for (const mediaId of mediaIds) {
+    const usedElsewhere =
+      projects.some(p =>
+        p.items.some(
+          x => x.mediaId === mediaId
+        )
+      );
+
+    if (!usedElsewhere) {
+      await removeBlob(mediaId)
+        .catch(() => {});
+    }
+  }
+
+  renderHome();
+}
+
+/* =========================================================
    OPEN PROJECT
 ========================================================= */
 
 async function openProject(id) {
-  projectId = id;
+  stopPlayback();
+
+  currentProjectId = id;
 
   const p = currentProject();
 
@@ -422,25 +690,35 @@ async function openProject(id) {
 
   S = freshState();
 
-  S.duration = p.duration || 10;
-  S.aspect = p.aspect || "9:16";
-  S.background = p.background || "#111111";
-  S.items = structuredClone(p.items || []);
+  S.duration =
+    p.duration || 10;
 
-  $("#projectName").value = p.name;
-  $("#saveStatus").textContent = "保存済み";
+  S.aspect =
+    p.aspect || "9:16";
+
+  S.background =
+    p.background || "#111111";
+
+  S.items =
+    clone(p.items || []);
+
+  $("#projectName").value =
+    p.name || "名称未設定";
+
+  $("#saveStatus").textContent =
+    "保存済み";
 
   showScreen("editor");
 
+  updateCanvasAspect();
+
   await rebuildCanvas();
 
-  updateCanvasAspect();
   renderTimeline();
 
-  /* 中央プレイヘッド = 0秒位置 */
   requestAnimationFrame(() => {
     syncTimelineGeometry();
-    seekTimelineTo(0, false);
+    seekTo(0);
     renderScene();
   });
 
@@ -448,31 +726,44 @@ async function openProject(id) {
 }
 
 /* =========================================================
-   MEDIA PROBE
+   FILE PROBE
 ========================================================= */
 
 function probeFile(file) {
   return new Promise(resolve => {
-    const url = URL.createObjectURL(file);
+    const url =
+      URL.createObjectURL(file);
 
-    if (file.type.startsWith("video")) {
-      const video = document.createElement("video");
+    if (
+      file.type.startsWith("video")
+    ) {
+      const video =
+        document.createElement("video");
 
       video.preload = "metadata";
 
       video.onloadedmetadata = () => {
         const result = {
-          width: video.videoWidth,
-          height: video.videoHeight,
-          duration: Number.isFinite(video.duration) ? video.duration : 5
+          width:
+            video.videoWidth || 1920,
+
+          height:
+            video.videoHeight || 1080,
+
+          duration:
+            Number.isFinite(video.duration)
+              ? video.duration
+              : 5
         };
 
         URL.revokeObjectURL(url);
+
         resolve(result);
       };
 
       video.onerror = () => {
         URL.revokeObjectURL(url);
+
         resolve({
           width: 1920,
           height: 1080,
@@ -481,69 +772,178 @@ function probeFile(file) {
       };
 
       video.src = url;
-    } else {
-      const img = new Image();
 
-      img.onload = () => {
-        const result = {
-          width: img.naturalWidth,
-          height: img.naturalHeight,
-          duration: 5
-        };
+      return;
+    }
+
+    if (
+      file.type.startsWith("audio")
+    ) {
+      const audio =
+        document.createElement("audio");
+
+      audio.preload = "metadata";
+
+      audio.onloadedmetadata = () => {
+        const duration =
+          Number.isFinite(audio.duration)
+            ? audio.duration
+            : 5;
 
         URL.revokeObjectURL(url);
-        resolve(result);
+
+        resolve({
+          width: 0,
+          height: 0,
+          duration
+        });
       };
 
-      img.onerror = () => {
+      audio.onerror = () => {
         URL.revokeObjectURL(url);
+
         resolve({
-          width: 1000,
-          height: 1000,
+          width: 0,
+          height: 0,
           duration: 5
         });
       };
 
-      img.src = url;
+      audio.src = url;
+
+      return;
     }
+
+    const image = new Image();
+
+    image.onload = () => {
+      const result = {
+        width:
+          image.naturalWidth || 1000,
+
+        height:
+          image.naturalHeight || 1000,
+
+        duration: 5
+      };
+
+      URL.revokeObjectURL(url);
+
+      resolve(result);
+    };
+
+    image.onerror = () => {
+      URL.revokeObjectURL(url);
+
+      resolve({
+        width: 1000,
+        height: 1000,
+        duration: 5
+      });
+    };
+
+    image.src = url;
   });
 }
 
 /* =========================================================
-   FIT MEDIA
+   CANVAS ASPECT
 ========================================================= */
 
-function fittedRect(w, h, cw, ch, scale = 1) {
-  const ratio = Math.min(cw / w, ch / h) * scale;
+function updateCanvasAspect() {
+  const [w, h] =
+    S.aspect
+      .split(":")
+      .map(Number);
 
-  const width = w * ratio;
-  const height = h * ratio;
+  $("#canvas").style.aspectRatio =
+    `${w}/${h}`;
+
+  $("#canvas").style.background =
+    S.background;
+}
+
+/* =========================================================
+   FIT RECT
+========================================================= */
+
+function fitRect(
+  sourceW,
+  sourceH,
+  canvasW,
+  canvasH,
+  multiplier = 1
+) {
+  const ratio =
+    Math.min(
+      canvasW / sourceW,
+      canvasH / sourceH
+    ) * multiplier;
+
+  const w =
+    sourceW * ratio;
+
+  const h =
+    sourceH * ratio;
 
   return {
-    x: (cw - width) / 2,
-    y: (ch - height) / 2,
-    w: width,
-    h: height
+    x: (canvasW - w) / 2,
+    y: (canvasH - h) / 2,
+    w,
+    h
   };
 }
 
 /* =========================================================
-   MAIN TRACK END
+   MAIN TRACK
 ========================================================= */
 
+function mainItems() {
+  return S.items
+    .filter(x => x.track === "main")
+    .sort((a, b) => a.start - b.start);
+}
+
 function mainTrackEnd() {
-  const items = S.items.filter(x => x.track === "main");
+  const list = mainItems();
 
-  if (!items.length) return 0;
-
-  return Math.max(...items.map(x => x.end));
+  return list.length
+    ? list[list.length - 1].end
+    : 0;
 }
 
 /* =========================================================
-   ADD FILES
+   AUTOMATIC MAIN TRACK CONNECTION
 ========================================================= */
 
-async function addFiles(files, mode = "main") {
+function reconnectMainTrack() {
+  const list = mainItems();
+
+  let cursor = 0;
+
+  for (const it of list) {
+    const duration =
+      Math.max(
+        0.05,
+        it.end - it.start
+      );
+
+    it.start = cursor;
+    it.end =
+      cursor + duration;
+
+    cursor = it.end;
+  }
+}
+
+/* =========================================================
+   ADD MEDIA
+========================================================= */
+
+async function addMediaFiles(
+  files,
+  mode = "main"
+) {
   if (!files.length) return;
 
   pushHistory();
@@ -551,87 +951,240 @@ async function addFiles(files, mode = "main") {
   for (const file of files) {
     const mediaId = uid();
 
-    await saveBlob(mediaId, file);
+    try {
+      await putBlob(mediaId, file);
+    } catch (error) {
+      console.error(error);
 
-    const meta = await probeFile(file);
+      toast(
+        "素材の保存に失敗しました"
+      );
 
-    const cw = $("#canvas").clientWidth || 300;
-    const ch = $("#canvas").clientHeight || 533;
+      continue;
+    }
 
-    const pip = mode === "pip";
+    const meta =
+      await probeFile(file);
 
-    const fit = fittedRect(
-      meta.width || cw,
-      meta.height || ch,
-      cw,
-      ch,
-      pip ? 0.48 : 1
-    );
+    const canvas =
+      $("#canvas");
 
-    const start = pip ? S.time : mainTrackEnd();
+    const cw =
+      canvas.clientWidth || 300;
 
-    const sourceDuration = file.type.startsWith("video")
-      ? meta.duration
-      : 5;
+    const ch =
+      canvas.clientHeight || 533;
 
-    const it = {
-      id: uid(),
+    const item =
+      baseItem();
 
-      mediaId,
+    item.mediaId = mediaId;
+    item.name = file.name;
 
-      type: file.type.startsWith("video") ? "video" : "image",
+    const isVideo =
+      file.type.startsWith("video");
 
-      track: pip ? "pip" : "main",
-      pip,
+    item.type =
+      isVideo
+        ? "video"
+        : "image";
 
-      name: file.name,
+    item.track =
+      mode === "pip"
+        ? "pip"
+        : "main";
 
-      sourceDuration,
-      sourceIn: 0,
-      sourceOut: sourceDuration,
+    item.sourceDuration =
+      isVideo
+        ? meta.duration
+        : 5;
 
-      start,
-      end: start + sourceDuration,
+    item.sourceIn = 0;
+    item.sourceOut =
+      item.sourceDuration;
 
-      x: fit.x,
-      y: fit.y,
-      w: fit.w,
-      h: fit.h,
+    item.start =
+      mode === "pip"
+        ? S.time
+        : mainTrackEnd();
 
-      rotation: 0,
-      flipX: false,
+    item.end =
+      item.start +
+      item.sourceDuration;
 
-      opacity: 100,
+    const fit =
+      fitRect(
+        meta.width || cw,
+        meta.height || ch,
+        cw,
+        ch,
+        mode === "pip" ? .48 : 1
+      );
 
-      speed: 1,
-      volume: 100,
+    Object.assign(item, fit);
 
-      brightness: 100,
-      contrast: 100,
-      saturation: 100,
+    S.items.push(item);
 
-      keyframes: [],
-
-      animation: {
-        in: null,
-        out: null,
-        loop: null,
-        pb: null
-      }
-    };
-
-    S.items.push(it);
-    S.selected = it.id;
+    S.selected = item.id;
   }
+
+  reconnectMainTrack();
 
   recalcDuration();
 
-  saveProject();
-
   await rebuildCanvas();
+
   renderTimeline();
   renderScene();
   updateToolbar();
+
+  saveProject();
+}
+
+/* =========================================================
+   AUDIO FILE
+========================================================= */
+
+async function addAudioFile(
+  file,
+  track = "music"
+) {
+  pushHistory();
+
+  const mediaId = uid();
+
+  await putBlob(mediaId, file);
+
+  const meta =
+    await probeFile(file);
+
+  const item =
+    baseItem();
+
+  item.id = uid();
+
+  item.mediaId = mediaId;
+
+  item.type = "audio";
+  item.track = track;
+
+  item.name = file.name;
+
+  item.start = S.time;
+
+  item.sourceDuration =
+    meta.duration || 5;
+
+  item.sourceIn = 0;
+  item.sourceOut =
+    item.sourceDuration;
+
+  item.end =
+    item.start +
+    item.sourceDuration;
+
+  item.volume = 100;
+
+  S.items.push(item);
+
+  S.selected = item.id;
+
+  recalcDuration();
+
+  await generateWaveform(item);
+
+  renderTimeline();
+  updateToolbar();
+
+  saveProject();
+
+  toast(
+    track === "music"
+      ? "音楽を追加しました"
+      : "効果音を追加しました"
+  );
+}
+
+/* =========================================================
+   WAVEFORM
+========================================================= */
+
+async function generateWaveform(item) {
+  try {
+    const blob =
+      await getBlob(item.mediaId);
+
+    if (!blob) return;
+
+    audioContext ||=
+      new (
+        window.AudioContext ||
+        window.webkitAudioContext
+      )();
+
+    const arrayBuffer =
+      await blob.arrayBuffer();
+
+    const buffer =
+      await audioContext.decodeAudioData(
+        arrayBuffer.slice(0)
+      );
+
+    const data =
+      buffer.getChannelData(0);
+
+    const samples = 120;
+
+    const step =
+      Math.max(
+        1,
+        Math.floor(
+          data.length / samples
+        )
+      );
+
+    const peaks = [];
+
+    for (
+      let i = 0;
+      i < samples;
+      i++
+    ) {
+      let max = 0;
+
+      const start =
+        i * step;
+
+      const end =
+        Math.min(
+          data.length,
+          start + step
+        );
+
+      for (
+        let j = start;
+        j < end;
+        j += 8
+      ) {
+        max =
+          Math.max(
+            max,
+            Math.abs(data[j])
+          );
+      }
+
+      peaks.push(max);
+    }
+
+    item.waveform = peaks;
+  } catch (error) {
+    console.warn(
+      "waveform:",
+      error
+    );
+
+    item.waveform = [];
+  }
 }
 
 /* =========================================================
@@ -644,63 +1197,95 @@ function recalcDuration() {
     return;
   }
 
-  S.duration = Math.max(
-    1,
-    ...S.items.map(x => x.end || 0)
-  );
+  S.duration =
+    Math.max(
+      1,
+      ...S.items.map(
+        x => x.end || 0
+      )
+    );
 
-  S.time = clamp(S.time, 0, S.duration);
+  S.time =
+    clamp(
+      S.time,
+      0,
+      S.duration
+    );
 }
 
 /* =========================================================
-   CANVAS
-========================================================= */
-
-function updateCanvasAspect() {
-  const [w, h] = S.aspect.split(":").map(Number);
-
-  $("#canvas").style.aspectRatio = `${w}/${h}`;
-  $("#canvas").style.background = S.background;
-}
-
-/* =========================================================
-   BUILD CANVAS NODES
+   CANVAS NODE
 ========================================================= */
 
 async function rebuildCanvas() {
-  for (const node of canvasNodes.values()) {
+  for (
+    const node of
+    canvasNodes.values()
+  ) {
     node.remove();
   }
 
   canvasNodes.clear();
 
-  for (const it of S.items) {
-    await createCanvasNode(it);
+  for (const item of S.items) {
+    if (
+      item.type === "audio"
+    ) {
+      continue;
+    }
+
+    await createCanvasNode(item);
   }
 }
 
-async function createCanvasNode(it) {
-  const node = document.createElement("div");
+async function createCanvasNode(item) {
+  const node =
+    document.createElement("div");
 
   node.className =
-    "canvasLayer " +
-    (it.type === "text" ? "textLayer" : "");
+    "canvasLayer";
 
-  node.dataset.id = it.id;
+  node.dataset.id = item.id;
 
-  if (it.type === "text") {
-    node.textContent = it.text || "";
-  } else {
-    const media = document.createElement(
-      it.type === "video" ? "video" : "img"
+  if (item.type === "text") {
+    node.classList.add("textLayer");
+
+    const inner =
+      document.createElement("span");
+
+    inner.className =
+      "textInner";
+
+    node.append(inner);
+  }
+
+  else if (
+    item.type === "sticker"
+  ) {
+    node.classList.add(
+      "stickerLayer"
     );
 
-    media.src = await getMediaURL(it);
+    node.textContent =
+      item.sticker || "✨";
+  }
 
-    if (it.type === "video") {
+  else {
+    const media =
+      document.createElement(
+        item.type === "video"
+          ? "video"
+          : "img"
+      );
+
+    media.src =
+      await mediaURL(item);
+
+    if (
+      item.type === "video"
+    ) {
       media.playsInline = true;
       media.preload = "auto";
-      media.muted = false;
     }
 
     node.append(media);
@@ -708,281 +1293,1104 @@ async function createCanvasNode(it) {
 
   $("#canvas").append(node);
 
-  canvasNodes.set(it.id, node);
+  canvasNodes.set(
+    item.id,
+    node
+  );
 
   return node;
 }
 
 /* =========================================================
-   KEYFRAME EASING
+   EASING
 ========================================================= */
 
-function easeInOut(t) {
-  return t < 0.5
-    ? 2 * t * t
-    : 1 - Math.pow(-2 * t + 2, 2) / 2;
+function easing(name, t) {
+  t = clamp(t, 0, 1);
+
+  switch (name) {
+
+    case "linear":
+      return t;
+
+    case "easeIn":
+      return t * t * t;
+
+    case "easeOut":
+      return (
+        1 -
+        Math.pow(1 - t, 3)
+      );
+
+    case "easeInOut":
+      return (
+        t < .5
+          ? 4 * t * t * t
+          : 1 -
+            Math.pow(
+              -2 * t + 2,
+              3
+            ) / 2
+      );
+
+    case "back": {
+      const c1 = 1.70158;
+      const c3 = c1 + 1;
+
+      return (
+        c3 * t * t * t -
+        c1 * t * t
+      );
+    }
+
+    case "bounce":
+      return easeOutBounce(t);
+
+    case "elastic": {
+      if (
+        t === 0 ||
+        t === 1
+      ) {
+        return t;
+      }
+
+      const c =
+        (2 * Math.PI) / 3;
+
+      return (
+        Math.pow(2, -10 * t) *
+        Math.sin(
+          (t * 10 - .75) * c
+        ) +
+        1
+      );
+    }
+
+    case "spring":
+      return (
+        1 -
+        Math.exp(-6 * t) *
+        Math.cos(10 * t)
+      );
+
+    default:
+      return t;
+  }
 }
 
-function interpolatedItem(it) {
-  if (!it.keyframes?.length) return { ...it };
+function easeOutBounce(x) {
+  const n1 = 7.5625;
+  const d1 = 2.75;
 
-  const keys = [...it.keyframes].sort((a, b) => a.time - b.time);
+  if (x < 1 / d1) {
+    return n1 * x * x;
+  }
 
-  if (S.time <= keys[0].time) {
+  if (x < 2 / d1) {
+    x -= 1.5 / d1;
+
+    return (
+      n1 * x * x + .75
+    );
+  }
+
+  if (x < 2.5 / d1) {
+    x -= 2.25 / d1;
+
+    return (
+      n1 * x * x + .9375
+    );
+  }
+
+  x -= 2.625 / d1;
+
+  return (
+    n1 * x * x + .984375
+  );
+}
+
+/* =========================================================
+   KEYFRAME VALUE
+========================================================= */
+
+function evaluatedItem(item) {
+  const keys =
+    [...(item.keyframes || [])]
+      .sort(
+        (a, b) =>
+          a.time - b.time
+      );
+
+  if (!keys.length) {
+    return { ...item };
+  }
+
+  if (
+    S.time <= keys[0].time
+  ) {
     return {
-      ...it,
+      ...item,
       ...keys[0]
     };
   }
 
-  if (S.time >= keys[keys.length - 1].time) {
+  if (
+    S.time >=
+    keys[keys.length - 1].time
+  ) {
     return {
-      ...it,
+      ...item,
       ...keys[keys.length - 1]
     };
   }
 
-  let a = keys[0];
-  let b = keys[1];
+  let left = keys[0];
+  let right = keys[1];
 
-  for (let i = 0; i < keys.length - 1; i++) {
+  for (
+    let i = 0;
+    i < keys.length - 1;
+    i++
+  ) {
     if (
       S.time >= keys[i].time &&
       S.time <= keys[i + 1].time
     ) {
-      a = keys[i];
-      b = keys[i + 1];
+      left = keys[i];
+      right = keys[i + 1];
+
       break;
     }
   }
 
   const raw =
-    (S.time - a.time) /
-    Math.max(0.0001, b.time - a.time);
+    (S.time - left.time) /
+    Math.max(
+      .0001,
+      right.time - left.time
+    );
 
-  const t = easeInOut(raw);
+  const t =
+    easing(
+      right.easing ||
+      "easeInOut",
+      raw
+    );
 
   const value = {
-    ...it
+    ...item
   };
 
-  for (const key of [
-    "x",
-    "y",
-    "w",
-    "h",
-    "rotation",
-    "opacity"
-  ]) {
-    value[key] =
-      a[key] +
-      (b[key] - a[key]) * t;
+  for (
+    const property of [
+      "x",
+      "y",
+      "w",
+      "h",
+      "rotation",
+      "opacity"
+    ]
+  ) {
+    value[property] =
+      left[property] +
+      (
+        right[property] -
+        left[property]
+      ) *
+      t;
   }
 
   return value;
 }
 
 /* =========================================================
-   SIMPLE PB ANIMATION
+   ANIMATION HELPERS
 ========================================================= */
 
-function applyAnimationValue(it, value) {
-  const out = { ...value };
+function animationProgress(
+  item,
+  animation,
+  position
+) {
+  if (!animation) return null;
 
-  const pb = it.animation?.pb;
+  const duration =
+    Math.max(
+      .05,
+      animation.duration || .5
+    );
 
-  if (!pb) return out;
+  if (position === "in") {
+    const local =
+      S.time - item.start;
 
-  const local = S.time - it.start;
+    if (
+      local < 0 ||
+      local > duration
+    ) {
+      return null;
+    }
 
-  if (local < 0 || S.time > it.end) return out;
-
-  const strength = (pb.strength ?? 100) / 100;
-
-  if (pb.name === "ぷるん") {
-    const q = Math.sin(local * 12) * Math.exp(-local * 1.5);
-
-    out.w *= 1 + q * 0.04 * strength;
-    out.h *= 1 - q * 0.04 * strength;
+    return clamp(
+      local / duration,
+      0,
+      1
+    );
   }
 
-  if (pb.name === "呼吸") {
-    const q = Math.sin(local * 3.4);
+  if (position === "out") {
+    const local =
+      item.end - S.time;
 
-    out.w *= 1 + q * 0.018 * strength;
-    out.h *= 1 + q * 0.018 * strength;
+    if (
+      local < 0 ||
+      local > duration
+    ) {
+      return null;
+    }
+
+    return clamp(
+      local / duration,
+      0,
+      1
+    );
   }
 
-  if (pb.name === "怒り") {
-    out.x += Math.sin(local * 40) * 4 * strength;
-    out.rotation += Math.sin(local * 32) * 2 * strength;
-  }
-
-  if (pb.name === "ジャンプ") {
-    const cycle = local % 1.2;
-    const p = cycle / 1.2;
-
-    out.y -= Math.sin(Math.PI * p) * 55 * strength;
-  }
-
-  return out;
+  return null;
 }
 
 /* =========================================================
-   RENDER SCENE
+   STANDARD ANIMATIONS
+========================================================= */
+
+function applyStandardAnimations(
+  item,
+  value
+) {
+  const result = { ...value };
+
+  const inAnim =
+    item.animation?.in;
+
+  const outAnim =
+    item.animation?.out;
+
+  const loopAnim =
+    item.animation?.loop;
+
+  let p =
+    animationProgress(
+      item,
+      inAnim,
+      "in"
+    );
+
+  if (
+    p !== null &&
+    inAnim
+  ) {
+    const strength =
+      (inAnim.strength || 100) /
+      100;
+
+    switch (inAnim.name) {
+
+      case "フェード":
+        result.opacity *= p;
+        break;
+
+      case "ポップ": {
+        const s =
+          .15 +
+          .85 *
+          easing("back", p);
+
+        result.w *= s;
+        result.h *= s;
+        break;
+      }
+
+      case "左から":
+        result.x -=
+          (1 - p) *
+          180 *
+          strength;
+        break;
+
+      case "右から":
+        result.x +=
+          (1 - p) *
+          180 *
+          strength;
+        break;
+
+      case "上から":
+        result.y -=
+          (1 - p) *
+          180 *
+          strength;
+        break;
+
+      case "下から":
+        result.y +=
+          (1 - p) *
+          180 *
+          strength;
+        break;
+    }
+  }
+
+  p =
+    animationProgress(
+      item,
+      outAnim,
+      "out"
+    );
+
+  if (
+    p !== null &&
+    outAnim
+  ) {
+    const strength =
+      (outAnim.strength || 100) /
+      100;
+
+    switch (outAnim.name) {
+
+      case "フェード":
+        result.opacity *= p;
+        break;
+
+      case "縮小":
+        result.w *= p;
+        result.h *= p;
+        break;
+
+      case "左へ":
+        result.x -=
+          (1 - p) *
+          180 *
+          strength;
+        break;
+
+      case "右へ":
+        result.x +=
+          (1 - p) *
+          180 *
+          strength;
+        break;
+
+      case "上へ":
+        result.y -=
+          (1 - p) *
+          180 *
+          strength;
+        break;
+
+      case "下へ":
+        result.y +=
+          (1 - p) *
+          180 *
+          strength;
+        break;
+    }
+  }
+
+  if (
+    loopAnim &&
+    S.time >= item.start &&
+    S.time <= item.end
+  ) {
+    const local =
+      S.time - item.start;
+
+    const strength =
+      (loopAnim.strength || 100) /
+      100;
+
+    switch (loopAnim.name) {
+
+      case "揺れる":
+        result.rotation +=
+          Math.sin(local * 7) *
+          5 *
+          strength;
+        break;
+
+      case "浮く":
+        result.y +=
+          Math.sin(local * 4) *
+          10 *
+          strength;
+        break;
+
+      case "回転":
+        result.rotation +=
+          local * 90 * strength;
+        break;
+
+      case "脈動": {
+        const s =
+          1 +
+          Math.sin(local * 5) *
+          .035 *
+          strength;
+
+        result.w *= s;
+        result.h *= s;
+
+        break;
+      }
+    }
+  }
+
+  return result;
+}
+
+/* =========================================================
+   PB ANIMATIONS — 10 TYPES
+========================================================= */
+
+function applyPBAnimation(
+  item,
+  value
+) {
+  const anim =
+    item.animation?.pb;
+
+  if (
+    !anim ||
+    S.time < item.start ||
+    S.time > item.end
+  ) {
+    return value;
+  }
+
+  const result = { ...value };
+
+  const local =
+    S.time - item.start;
+
+  const strength =
+    (anim.strength || 100) /
+    100;
+
+  const duration =
+    Math.max(
+      .1,
+      anim.duration || .7
+    );
+
+  const count =
+    anim.count || 1;
+
+  const cycle =
+    (
+      local /
+      duration
+    ) %
+    1;
+
+  switch (anim.name) {
+
+    /* 1 */
+    case "ぷるん": {
+      const q =
+        Math.sin(
+          cycle *
+          Math.PI *
+          2 *
+          count
+        ) *
+        Math.exp(
+          -cycle * 2
+        );
+
+      result.w *=
+        1 +
+        q *
+        .07 *
+        strength;
+
+      result.h *=
+        1 -
+        q *
+        .07 *
+        strength;
+
+      break;
+    }
+
+    /* 2 */
+    case "歩く": {
+      const step =
+        Math.sin(
+          local * 10
+        );
+
+      result.y -=
+        Math.abs(step) *
+        5 *
+        strength;
+
+      result.rotation +=
+        step *
+        3 *
+        strength;
+
+      break;
+    }
+
+    /* 3 */
+    case "走る": {
+      const step =
+        Math.sin(
+          local * 18
+        );
+
+      result.y -=
+        Math.abs(step) *
+        9 *
+        strength;
+
+      result.rotation +=
+        step *
+        5 *
+        strength;
+
+      result.w *=
+        1.04;
+
+      result.h *=
+        .96;
+
+      break;
+    }
+
+    /* 4 */
+    case "ジャンプ": {
+      const jump =
+        Math.sin(
+          Math.PI * cycle
+        );
+
+      result.y -=
+        jump *
+        75 *
+        strength;
+
+      if (cycle < .15) {
+        result.w *= 1.07;
+        result.h *= .93;
+      }
+
+      break;
+    }
+
+    /* 5 */
+    case "着地": {
+      if (cycle < .3) {
+        const q =
+          1 -
+          cycle / .3;
+
+        result.w *=
+          1 +
+          q *
+          .16 *
+          strength;
+
+        result.h *=
+          1 -
+          q *
+          .16 *
+          strength;
+      }
+
+      break;
+    }
+
+    /* 6 */
+    case "怒り": {
+      result.x +=
+        Math.sin(
+          local * 42
+        ) *
+        5 *
+        strength;
+
+      result.rotation +=
+        Math.sin(
+          local * 37
+        ) *
+        2.5 *
+        strength;
+
+      break;
+    }
+
+    /* 7 */
+    case "衝突": {
+      if (cycle < .2) {
+        const impact =
+          1 -
+          cycle / .2;
+
+        result.w *=
+          1 +
+          impact *
+          .18 *
+          strength;
+
+        result.h *=
+          1 -
+          impact *
+          .18 *
+          strength;
+
+        result.x -=
+          impact *
+          15 *
+          strength;
+      }
+
+      break;
+    }
+
+    /* 8 */
+    case "吹っ飛ぶ": {
+      const p =
+        clamp(
+          local / duration,
+          0,
+          1
+        );
+
+      result.x +=
+        p *
+        280 *
+        strength;
+
+      result.y -=
+        Math.sin(
+          Math.PI * p
+        ) *
+        100 *
+        strength;
+
+      result.rotation +=
+        p *
+        420 *
+        strength;
+
+      break;
+    }
+
+    /* 9 */
+    case "転がる": {
+      const p =
+        clamp(
+          local / duration,
+          0,
+          1
+        );
+
+      result.x +=
+        p *
+        180 *
+        strength;
+
+      result.rotation +=
+        p *
+        720 *
+        strength;
+
+      break;
+    }
+
+    /* 10 */
+    case "呼吸": {
+      const q =
+        Math.sin(
+          local * 3.4
+        );
+
+      result.w *=
+        1 +
+        q *
+        .018 *
+        strength;
+
+      result.h *=
+        1 +
+        q *
+        .018 *
+        strength;
+
+      break;
+    }
+  }
+
+  return result;
+}
+
+/* =========================================================
+   CROP
+========================================================= */
+
+function applyCropToMedia(
+  item,
+  media
+) {
+  const crop =
+    item.crop || {
+      x: 0,
+      y: 0,
+      w: 1,
+      h: 1
+    };
+
+  /*
+    object-position + scale approximation.
+    Dedicated crop editor modifies these values.
+  */
+
+  const scaleX =
+    1 / Math.max(.01, crop.w);
+
+  const scaleY =
+    1 / Math.max(.01, crop.h);
+
+  media.style.width =
+    `${scaleX * 100}%`;
+
+  media.style.height =
+    `${scaleY * 100}%`;
+
+  media.style.maxWidth = "none";
+  media.style.maxHeight = "none";
+
+  media.style.position =
+    "absolute";
+
+  media.style.left =
+    `${-crop.x * scaleX * 100}%`;
+
+  media.style.top =
+    `${-crop.y * scaleY * 100}%`;
+
+  media.style.objectFit =
+    "cover";
+}
+
+/* =========================================================
+   TEXT STYLE
+========================================================= */
+
+function renderText(item, node) {
+  const inner =
+    node.querySelector(".textInner");
+
+  if (!inner) return;
+
+  inner.textContent =
+    item.text || "";
+
+  node.style.fontSize =
+    `${item.fontSize || 32}px`;
+
+  node.style.color =
+    item.color || "#ffffff";
+
+  node.style.webkitTextStroke =
+    item.stroke
+      ? `${item.stroke}px ${
+          item.strokeColor ||
+          "#000000"
+        }`
+      : "0";
+
+  const shadow =
+    item.shadow || 0;
+
+  node.style.textShadow =
+    shadow
+      ? `0 ${shadow / 3}px ${shadow}px #000`
+      : "none";
+
+  inner.style.background =
+    item.textBackgroundEnabled
+      ? (
+          item.textBackground ||
+          "#000000"
+        )
+      : "transparent";
+}
+
+/* =========================================================
+   SCENE RENDER
 ========================================================= */
 
 async function renderScene() {
   updateCanvasAspect();
 
-  for (let z = 0; z < S.items.length; z++) {
-    const it = S.items[z];
+  for (
+    let index = 0;
+    index < S.items.length;
+    index++
+  ) {
+    const item =
+      S.items[index];
 
-    let node = canvasNodes.get(it.id);
-
-    if (!node) {
-      node = await createCanvasNode(it);
+    if (
+      item.type === "audio"
+    ) {
+      continue;
     }
 
-    let value = interpolatedItem(it);
-    value = applyAnimationValue(it, value);
+    let node =
+      canvasNodes.get(item.id);
+
+    if (!node) {
+      node =
+        await createCanvasNode(item);
+    }
+
+    let value =
+      evaluatedItem(item);
+
+    value =
+      applyStandardAnimations(
+        item,
+        value
+      );
+
+    value =
+      applyPBAnimation(
+        item,
+        value
+      );
+
+    const inRange =
+      S.time >= item.start &&
+      S.time <= item.end;
 
     const visible =
-      S.time >= it.start &&
-      S.time <= it.end;
+      inRange &&
+      item.visible !== false;
 
-    node.style.visibility = visible ? "visible" : "hidden";
+    node.style.visibility =
+      visible
+        ? "visible"
+        : "hidden";
 
     node.classList.toggle(
       "selected",
-      it.id === S.selected
+      item.id === S.selected
     );
 
-    node.style.width = value.w + "px";
-    node.style.height = value.h + "px";
+    node.classList.toggle(
+      "locked",
+      !!item.locked
+    );
+
+    node.style.width =
+      `${value.w}px`;
+
+    node.style.height =
+      `${value.h}px`;
 
     node.style.transform = `
-      translate3d(${value.x}px, ${value.y}px, 0)
-      rotate(${value.rotation || 0}deg)
-      scaleX(${value.flipX ? -1 : 1})
+      translate3d(
+        ${value.x}px,
+        ${value.y}px,
+        0
+      )
+      rotate(
+        ${value.rotation || 0}deg
+      )
+      scale(
+        ${item.flipX ? -1 : 1},
+        ${item.flipY ? -1 : 1}
+      )
     `;
 
-    node.style.opacity = (value.opacity ?? 100) / 100;
+    node.style.opacity =
+      (value.opacity ?? 100) /
+      100;
 
-    node.style.zIndex = z + 1;
+    node.style.zIndex =
+      index + 1;
 
     node.style.filter = `
-      brightness(${it.brightness ?? 100}%)
-      contrast(${it.contrast ?? 100}%)
-      saturate(${it.saturation ?? 100}%)
+      brightness(
+        ${item.brightness ?? 100}%
+      )
+      contrast(
+        ${item.contrast ?? 100}%
+      )
+      saturate(
+        ${item.saturation ?? 100}%
+      )
     `;
 
-    if (it.type === "text") {
-      node.textContent = it.text || "";
-
-      node.style.fontSize = (it.fontSize || 32) + "px";
-      node.style.color = it.color || "#ffffff";
-
-      const stroke = it.stroke || 0;
-
-      node.style.webkitTextStroke =
-        stroke
-          ? `${stroke}px ${it.strokeColor || "#000000"}`
-          : "0";
+    if (
+      item.type === "text"
+    ) {
+      renderText(
+        item,
+        node
+      );
     }
 
-    if (it.type === "video") {
-      const video = node.querySelector("video");
+    if (
+      item.type === "sticker"
+    ) {
+      node.textContent =
+        item.sticker || "✨";
+    }
+
+    if (
+      item.type === "image"
+    ) {
+      const image =
+        node.querySelector("img");
+
+      if (image) {
+        applyCropToMedia(
+          item,
+          image
+        );
+      }
+    }
+
+    if (
+      item.type === "video"
+    ) {
+      const video =
+        node.querySelector("video");
 
       if (!video) continue;
 
-      const target =
-        it.sourceIn +
-        (S.time - it.start) * (it.speed || 1);
+      applyCropToMedia(
+        item,
+        video
+      );
 
-      video.volume = clamp((it.volume ?? 100) / 100, 0, 1);
-      video.playbackRate = clamp(it.speed || 1, 0.25, 4);
+      const target =
+        item.sourceIn +
+        (
+          S.time -
+          item.start
+        ) *
+        (item.speed || 1);
+
+      video.volume =
+        clamp(
+          (item.volume ?? 100) /
+          100,
+          0,
+          1
+        );
+
+      video.playbackRate =
+        clamp(
+          item.speed || 1,
+          .25,
+          4
+        );
 
       if (!visible) {
         video.pause();
         continue;
       }
 
-      const safeTarget = clamp(
-        target,
-        it.sourceIn,
-        it.sourceOut
-      );
+      const safeTarget =
+        clamp(
+          target,
+          item.sourceIn,
+          item.sourceOut
+        );
 
-      if (
-        !S.playing &&
-        Number.isFinite(safeTarget) &&
-        Math.abs(video.currentTime - safeTarget) > 0.08
-      ) {
-        try {
-          video.currentTime = safeTarget;
-        } catch {}
-      }
+      if (!S.playing) {
+        video.pause();
 
-      if (S.playing) {
         if (
-          Math.abs(video.currentTime - safeTarget) > 0.25
+          Number.isFinite(safeTarget) &&
+          Math.abs(
+            video.currentTime -
+            safeTarget
+          ) > .08
         ) {
           try {
-            video.currentTime = safeTarget;
+            video.currentTime =
+              safeTarget;
+          } catch {}
+        }
+      }
+
+      else {
+        if (
+          Math.abs(
+            video.currentTime -
+            safeTarget
+          ) > .28
+        ) {
+          try {
+            video.currentTime =
+              safeTarget;
           } catch {}
         }
 
-        video.play().catch(() => {});
-      } else {
-        video.pause();
+        video.play()
+          .catch(() => {});
       }
-    }
-  }
-
-  for (const [id, node] of canvasNodes) {
-    if (!S.items.some(x => x.id === id)) {
-      node.remove();
-      canvasNodes.delete(id);
     }
   }
 
   $("#timeDisplay").textContent =
     `${formatTime(S.time)} / ${formatTime(S.duration)}`;
+
+  updateFloatingKeyButton();
 }
 
 /* =========================================================
-   TIMELINE GEOMETRY
+   TIMELINE SCALE
 ========================================================= */
 
 function pixelsPerSecond() {
-  return 82 * timelineZoom;
+  return 82 * zoom;
 }
 
 function centerPadding() {
-  return $("#timelineViewport").clientWidth / 2;
-}
-
-function timelineTotalWidth() {
   return (
-    centerPadding() * 2 +
-    S.duration * pixelsPerSecond()
+    $("#timelineViewport")
+      .clientWidth / 2
   );
 }
 
 function syncTimelineGeometry() {
-  const padding = centerPadding();
-  const total = timelineTotalWidth();
+  const padding =
+    centerPadding();
 
-  $("#timelineContent").style.width = total + "px";
+  const width =
+    S.duration *
+    pixelsPerSecond();
 
-  $("#timelineRuler").style.left = padding + "px";
+  $("#timelineContent").style.width =
+    `${padding * 2 + width}px`;
+
+  $("#timelineRuler").style.left =
+    `${padding}px`;
+
   $("#timelineRuler").style.width =
-    S.duration * pixelsPerSecond() + "px";
+    `${width}px`;
 
-  $("#trackContainer").style.marginLeft = padding + "px";
+  $("#trackContainer").style.marginLeft =
+    `${padding}px`;
+
   $("#trackContainer").style.width =
-    S.duration * pixelsPerSecond() + "px";
+    `${width}px`;
 
   renderRuler();
 }
@@ -992,489 +2400,810 @@ function syncTimelineGeometry() {
 ========================================================= */
 
 function renderRuler() {
-  const ruler = $("#timelineRuler");
+  const ruler =
+    $("#timelineRuler");
 
   ruler.innerHTML = "";
 
-  const pps = pixelsPerSecond();
+  const pps =
+    pixelsPerSecond();
 
-  let step = 1;
+  let major = 1;
 
-  if (pps < 50) step = 2;
-  if (pps < 28) step = 5;
-  if (pps > 180) step = 0.5;
+  if (pps < 45) major = 2;
+  if (pps < 25) major = 5;
+  if (pps > 160) major = .5;
 
-  for (let t = 0; t <= S.duration + 0.001; t += step) {
-    const mark = document.createElement("span");
+  const minor =
+    major / 4;
 
-    mark.className = "rulerTime";
-    mark.style.left = t * pps + "px";
-    mark.textContent =
+  for (
+    let t = 0;
+    t <= S.duration + .001;
+    t += minor
+  ) {
+    const tick =
+      document.createElement("i");
+
+    tick.className =
+      "rulerTick " +
+      (
+        Math.abs(
+          (t / major) -
+          Math.round(t / major)
+        ) < .001
+          ? "major"
+          : "minor"
+      );
+
+    tick.style.left =
+      `${t * pps}px`;
+
+    ruler.append(tick);
+  }
+
+  for (
+    let t = 0;
+    t <= S.duration + .001;
+    t += major
+  ) {
+    const label =
+      document.createElement("span");
+
+    label.className =
+      "rulerTime";
+
+    label.style.left =
+      `${t * pps}px`;
+
+    label.textContent =
       t < 60
-        ? `${t.toFixed(step < 1 ? 1 : 0)}s`
+        ? `${t.toFixed(
+            major < 1 ? 1 : 0
+          )}s`
         : formatTime(t).slice(0, 5);
 
-    ruler.append(mark);
+    ruler.append(label);
   }
 }
 
 /* =========================================================
-   TRACK TARGET
+   TRACK FOR ITEM
 ========================================================= */
 
-function trackForItem(it) {
-  if (it.track === "main") return $("#mainTrackClips");
-  if (it.track === "pip") return $("#pipTrackClips");
-  if (it.track === "text") return $("#textTrackClips");
-  if (it.track === "audio") return $("#audioTrackClips");
+function trackElement(item) {
+  switch (item.track) {
+    case "main":
+      return $("#mainTrackClips");
 
-  return $("#pipTrackClips");
+    case "text":
+      return $("#textTrackClips");
+
+    case "pip":
+      return $("#pipTrackClips");
+
+    case "sticker":
+      return $("#stickerTrackClips");
+
+    case "music":
+      return $("#musicTrackClips");
+
+    case "sfx":
+      return $("#sfxTrackClips");
+
+    default:
+      return $("#pipTrackClips");
+  }
 }
 
 /* =========================================================
-   RENDER TIMELINE
+   WAVEFORM DOM
+========================================================= */
+
+function makeWaveformCanvas(item) {
+  const canvas =
+    document.createElement("canvas");
+
+  canvas.className =
+    "clipWaveform";
+
+  canvas.width = 600;
+  canvas.height = 80;
+
+  const ctx =
+    canvas.getContext("2d");
+
+  const peaks =
+    item.waveform || [];
+
+  ctx.clearRect(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+
+  ctx.strokeStyle =
+    "rgba(255,255,255,.85)";
+
+  ctx.lineWidth = 1;
+
+  ctx.beginPath();
+
+  const mid =
+    canvas.height / 2;
+
+  if (peaks.length) {
+    peaks.forEach(
+      (value, index) => {
+        const x =
+          index /
+          Math.max(
+            1,
+            peaks.length - 1
+          ) *
+          canvas.width;
+
+        const h =
+          value *
+          canvas.height *
+          .42;
+
+        ctx.moveTo(
+          x,
+          mid - h
+        );
+
+        ctx.lineTo(
+          x,
+          mid + h
+        );
+      }
+    );
+  }
+
+  ctx.stroke();
+
+  return canvas;
+}
+
+/* =========================================================
+   TIMELINE RENDER
 ========================================================= */
 
 function renderTimeline() {
-  $("#mainTrackClips").innerHTML = "";
-  $("#pipTrackClips").innerHTML = "";
-  $("#textTrackClips").innerHTML = "";
-  $("#audioTrackClips").innerHTML = "";
+  for (
+    const id of [
+      "mainTrackClips",
+      "textTrackClips",
+      "pipTrackClips",
+      "stickerTrackClips",
+      "musicTrackClips",
+      "sfxTrackClips"
+    ]
+  ) {
+    $("#" + id).innerHTML = "";
+  }
 
   syncTimelineGeometry();
 
-  for (const it of S.items) {
-    const clip = document.createElement("div");
+  for (const item of S.items) {
+    const clip =
+      document.createElement("div");
 
     clip.className =
-      `timelineClip ${it.track || it.type}` +
-      (it.id === S.selected ? " selected" : "");
+      `timelineClip ${item.track}` +
+      (
+        item.id === S.selected
+          ? " selected"
+          : ""
+      ) +
+      (
+        item.locked
+          ? " locked"
+          : ""
+      ) +
+      (
+        item.visible === false
+          ? " invisibleClip"
+          : ""
+      );
 
-    clip.dataset.id = it.id;
+    clip.dataset.id =
+      item.id;
 
     clip.style.left =
-      it.start * pixelsPerSecond() + "px";
+      `${item.start *
+        pixelsPerSecond()}px`;
 
     clip.style.width =
-      Math.max(
+      `${Math.max(
         20,
-        (it.end - it.start) * pixelsPerSecond()
-      ) + "px";
+        (
+          item.end -
+          item.start
+        ) *
+        pixelsPerSecond()
+      )}px`;
 
-    if (it.type === "video") {
-      const thumbs = document.createElement("div");
-      thumbs.className = "clipThumbnails";
-
-      clip.append(thumbs);
-
-      /* 非同期でサムネイル生成 */
-      requestAnimationFrame(() => {
-        buildClipThumbnails(it, thumbs).catch(() => {});
-      });
+    if (
+      item.type === "audio"
+    ) {
+      clip.append(
+        makeWaveformCanvas(item)
+      );
     }
 
-    const name = document.createElement("span");
-    name.className = "clipName";
-    name.textContent = it.name || it.type;
+    const name =
+      document.createElement("span");
+
+    name.className =
+      "clipName";
+
+    name.textContent =
+      item.name ||
+      item.type;
 
     clip.append(name);
 
-    if (it.id === S.selected) {
-      const left = document.createElement("i");
-      left.className = "trimHandle left";
-      left.dataset.trim = "left";
+    if (
+      item.id === S.selected
+    ) {
+      const left =
+        document.createElement("i");
 
-      const right = document.createElement("i");
-      right.className = "trimHandle right";
-      right.dataset.trim = "right";
+      left.className =
+        "trimHandle left";
 
-      clip.append(left, right);
+      left.dataset.trim =
+        "left";
 
-      for (const key of it.keyframes || []) {
-        if (key.time < it.start || key.time > it.end) continue;
+      const right =
+        document.createElement("i");
 
-        const marker = document.createElement("i");
-        marker.className = "keyframeMarker";
+      right.className =
+        "trimHandle right";
+
+      right.dataset.trim =
+        "right";
+
+      clip.append(
+        left,
+        right
+      );
+
+      for (
+        const key of
+        item.keyframes || []
+      ) {
+        const marker =
+          document.createElement("i");
+
+        marker.className =
+          "keyframeMarker";
+
+        if (
+          Math.abs(
+            key.time - S.time
+          ) < .03
+        ) {
+          marker.classList.add(
+            "current"
+          );
+        }
 
         marker.style.left =
-          (key.time - it.start) *
-          pixelsPerSecond() +
-          "px";
+          `${
+            (
+              key.time -
+              item.start
+            ) *
+            pixelsPerSecond()
+          }px`;
 
         clip.append(marker);
       }
     }
 
-    trackForItem(it).append(clip);
+    trackElement(item)
+      .append(clip);
   }
 }
 
 /* =========================================================
-   VIDEO THUMBNAILS
+   SEEK
 ========================================================= */
 
-async function buildClipThumbnails(it, holder) {
-  if (!holder.isConnected) return;
-
-  const url = await getMediaURL(it);
-
-  if (!url || !holder.isConnected) return;
-
-  const video = document.createElement("video");
-
-  video.src = url;
-  video.muted = true;
-  video.playsInline = true;
-  video.preload = "auto";
-
-  await new Promise(resolve => {
-    if (video.readyState >= 1) {
-      resolve();
-      return;
-    }
-
-    video.onloadedmetadata = resolve;
-    video.onerror = resolve;
-  });
-
-  if (!Number.isFinite(video.duration)) return;
-
-  const clipWidth =
-    Math.max(
-      20,
-      (it.end - it.start) * pixelsPerSecond()
+function seekTo(time) {
+  S.time =
+    clamp(
+      time,
+      0,
+      S.duration
     );
 
-  const count = clamp(
-    Math.ceil(clipWidth / 55),
-    1,
-    14
-  );
+  scrollSync = true;
 
-  const canvas = document.createElement("canvas");
-  canvas.width = 100;
-  canvas.height = 70;
-
-  const ctx = canvas.getContext("2d");
-
-  for (let i = 0; i < count; i++) {
-    if (!holder.isConnected) return;
-
-    const p =
-      count === 1
-        ? 0
-        : i / (count - 1);
-
-    const time =
-      it.sourceIn +
-      (it.sourceOut - it.sourceIn) * p;
-
-    await seekVideo(video, time);
-
-    try {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      ctx.drawImage(
-        video,
-        0,
-        0,
-        canvas.width,
-        canvas.height
-      );
-
-      const img = document.createElement("img");
-
-      img.className = "clipThumb";
-      img.src = canvas.toDataURL("image/jpeg", 0.55);
-
-      holder.append(img);
-    } catch {
-      return;
-    }
-  }
-}
-
-function seekVideo(video, time) {
-  return new Promise(resolve => {
-    let finished = false;
-
-    const done = () => {
-      if (finished) return;
-      finished = true;
-      resolve();
-    };
-
-    video.addEventListener("seeked", done, {
-      once: true
-    });
-
-    try {
-      video.currentTime = clamp(
-        time,
-        0,
-        Math.max(0, (video.duration || time) - 0.01)
-      );
-    } catch {
-      done();
-    }
-
-    setTimeout(done, 500);
-  });
-}
-
-/* =========================================================
-   FIXED-CENTER TIMELINE
-========================================================= */
-
-function timeFromTimelineScroll() {
-  return clamp(
-    $("#timelineViewport").scrollLeft /
-      pixelsPerSecond(),
-    0,
-    S.duration
-  );
-}
-
-function seekTimelineTo(time, smooth = false) {
-  S.time = clamp(time, 0, S.duration);
-
-  const left =
-    S.time * pixelsPerSecond();
-
-  timelineBusy = true;
-
-  $("#timelineViewport").scrollTo({
-    left,
-    behavior: smooth ? "smooth" : "auto"
-  });
+  $("#timelineViewport")
+    .scrollLeft =
+      S.time *
+      pixelsPerSecond();
 
   requestAnimationFrame(() => {
-    timelineBusy = false;
+    scrollSync = false;
   });
 
   renderScene();
 }
 
-/* User drags timeline -> current time changes */
-
-$("#timelineViewport").addEventListener(
-  "scroll",
-  () => {
-    if (timelineBusy) return;
-
-    S.time = timeFromTimelineScroll();
-
-    if (S.playing) {
-      stopPlayback();
-    }
-
-    renderScene();
-  },
-  { passive: true }
-);
-
 /* =========================================================
-   TIMELINE ZOOM
+   TIMELINE SCROLL
 ========================================================= */
 
-function changeTimelineZoom(multiplier) {
-  const oldTime = S.time;
+$("#timelineViewport")
+  .addEventListener(
+    "scroll",
+    () => {
+      if (scrollSync) return;
 
-  timelineZoom = clamp(
-    timelineZoom * multiplier,
-    0.45,
-    4
+      S.time =
+        clamp(
+          $("#timelineViewport")
+            .scrollLeft /
+            pixelsPerSecond(),
+
+          0,
+          S.duration
+        );
+
+      if (S.playing) {
+        stopPlayback();
+      }
+
+      renderScene();
+    },
+    { passive: true }
   );
+
+/* =========================================================
+   ZOOM
+========================================================= */
+
+function changeZoom(multiplier) {
+  const time = S.time;
+
+  zoom =
+    clamp(
+      zoom * multiplier,
+      .4,
+      4
+    );
 
   renderTimeline();
 
-  requestAnimationFrame(() => {
-    seekTimelineTo(oldTime, false);
-  });
+  requestAnimationFrame(
+    () => seekTo(time)
+  );
 }
 
 $("#timelineZoomIn").onclick =
-  () => changeTimelineZoom(1.25);
+  () => changeZoom(1.25);
 
 $("#timelineZoomOut").onclick =
-  () => changeTimelineZoom(0.8);
+  () => changeZoom(.8);
 
-/* =========================================================
-   TIMELINE CLIP POINTER
-========================================================= */
+$("#timelineFitBtn").onclick =
+  () => {
+    const viewport =
+      $("#timelineViewport")
+        .clientWidth;
 
-$("#trackContainer").addEventListener(
-  "pointerdown",
-  event => {
-    const clip = event.target.closest(".timelineClip");
+    zoom =
+      clamp(
+        (
+          viewport -
+          30
+        ) /
+        Math.max(
+          1,
+          S.duration * 82
+        ),
+        .4,
+        4
+      );
 
-    if (!clip) return;
-
-    const it = S.items.find(x => x.id === clip.dataset.id);
-
-    if (!it) return;
-
-    S.selected = it.id;
-
-    updateToolbar();
-    renderScene();
     renderTimeline();
 
-    const handle = event.target.closest(".trimHandle");
+    requestAnimationFrame(
+      () => seekTo(S.time)
+    );
+  };
+
+/* =========================================================
+   KEYFRAMES
+========================================================= */
+
+function transformKey(item) {
+  return {
+    time: S.time,
+
+    x: item.x,
+    y: item.y,
+
+    w: item.w,
+    h: item.h,
+
+    rotation:
+      item.rotation || 0,
+
+    opacity:
+      item.opacity ?? 100,
+
+    easing:
+      "easeInOut"
+  };
+}
+
+function addKeyframe(item) {
+  if (!item) return;
+
+  item.keyframes ||= [];
+
+  const existing =
+    item.keyframes.findIndex(
+      k =>
+        Math.abs(
+          k.time - S.time
+        ) < .03
+    );
+
+  const key =
+    transformKey(item);
+
+  if (existing >= 0) {
+    key.easing =
+      item.keyframes[
+        existing
+      ].easing ||
+      "easeInOut";
+
+    item.keyframes[
+      existing
+    ] = key;
+  }
+
+  else {
+    item.keyframes.push(key);
+  }
+
+  item.keyframes.sort(
+    (a, b) =>
+      a.time - b.time
+  );
+
+  saveProject();
+  renderTimeline();
+  renderScene();
+
+  toast("◇ キーフレーム");
+}
+
+function currentKey(item) {
+  if (!item) return null;
+
+  return (
+    item.keyframes?.find(
+      k =>
+        Math.abs(
+          k.time - S.time
+        ) < .035
+    ) ||
+    null
+  );
+}
+
+function updateCurrentKey(item) {
+  const key =
+    currentKey(item);
+
+  if (!key) return;
+
+  const easingName =
+    key.easing;
+
+  Object.assign(
+    key,
+    transformKey(item)
+  );
+
+  key.easing =
+    easingName;
+}
+
+function nearestKey(
+  item,
+  direction
+) {
+  if (!item?.keyframes?.length) {
+    return null;
+  }
+
+  const sorted =
+    [...item.keyframes]
+      .sort(
+        (a, b) =>
+          a.time - b.time
+      );
+
+  if (direction < 0) {
+    return (
+      [...sorted]
+        .reverse()
+        .find(
+          k =>
+            k.time <
+            S.time - .03
+        ) ||
+      null
+    );
+  }
+
+  return (
+    sorted.find(
+      k =>
+        k.time >
+        S.time + .03
+    ) ||
+    null
+  );
+}
+
+function jumpKey(direction) {
+  const item =
+    selectedItem();
+
+  const key =
+    nearestKey(
+      item,
+      direction
+    );
+
+  if (!key) {
+    toast(
+      direction < 0
+        ? "前のキーはありません"
+        : "次のキーはありません"
+    );
+
+    return;
+  }
+
+  seekTo(key.time);
+}
+
+function updateFloatingKeyButton() {
+  const button =
+    $("#floatingKeyframeBtn");
+
+  const item =
+    selectedItem();
+
+  button.hidden =
+    !item ||
+    item.type === "audio";
+
+  button.classList.toggle(
+    "active",
+    !!currentKey(item)
+  );
+}
+
+$("#floatingKeyframeBtn").onclick =
+  () => {
+    const item =
+      selectedItem();
+
+    if (!item) return;
 
     pushHistory();
 
-    timelineGesture = {
-      type: handle
-        ? "trim"
-        : "move",
+    addKeyframe(item);
+  };
 
-      side: handle?.dataset.trim || null,
+$("#previousKeyBtn").onclick =
+  () => jumpKey(-1);
 
-      item: it,
-
-      startX: event.clientX,
-
-      start: it.start,
-      end: it.end,
-
-      sourceIn: it.sourceIn,
-      sourceOut: it.sourceOut
-    };
-
-    clip.setPointerCapture?.(event.pointerId);
-
-    event.preventDefault();
-    event.stopPropagation();
-  }
-);
-
-$("#trackContainer").addEventListener(
-  "pointermove",
-  event => {
-    if (!timelineGesture) return;
-
-    const g = timelineGesture;
-    const it = g.item;
-
-    const delta =
-      (event.clientX - g.startX) /
-      pixelsPerSecond();
-
-    if (g.type === "move") {
-      const duration = g.end - g.start;
-
-      const newStart = Math.max(
-        0,
-        g.start + delta
-      );
-
-      it.start = newStart;
-      it.end = newStart + duration;
-    }
-
-    if (
-      g.type === "trim" &&
-      g.side === "left"
-    ) {
-      const maxStart = g.end - 0.1;
-
-      const newStart = clamp(
-        g.start + delta,
-        0,
-        maxStart
-      );
-
-      const actualDelta = newStart - g.start;
-
-      it.start = newStart;
-
-      if (it.type === "video") {
-        it.sourceIn = clamp(
-          g.sourceIn +
-            actualDelta *
-              (it.speed || 1),
-
-          0,
-          g.sourceOut - 0.05
-        );
-      }
-    }
-
-    if (
-      g.type === "trim" &&
-      g.side === "right"
-    ) {
-      let newEnd = Math.max(
-        g.start + 0.1,
-        g.end + delta
-      );
-
-      if (it.type === "video") {
-        const maxExtra =
-          (it.sourceDuration - g.sourceOut) /
-          (it.speed || 1);
-
-        newEnd = Math.min(
-          newEnd,
-          g.end + maxExtra
-        );
-
-        const actualDelta =
-          newEnd - g.end;
-
-        it.sourceOut = clamp(
-          g.sourceOut +
-            actualDelta *
-              (it.speed || 1),
-
-          it.sourceIn + 0.05,
-          it.sourceDuration
-        );
-      }
-
-      it.end = newEnd;
-    }
-
-    recalcDuration();
-
-    renderTimeline();
-    renderScene();
-
-    event.preventDefault();
-  }
-);
-
-function endTimelineGesture() {
-  if (!timelineGesture) return;
-
-  timelineGesture = null;
-
-  recalcDuration();
-  saveProject();
-
-  renderTimeline();
-  renderScene();
-}
-
-$("#trackContainer").addEventListener(
-  "pointerup",
-  endTimelineGesture
-);
-
-$("#trackContainer").addEventListener(
-  "pointercancel",
-  endTimelineGesture
-);
+$("#nextKeyBtn").onclick =
+  () => jumpKey(1);
 
 /* =========================================================
-   CANVAS SELECT / MOVE / PINCH
+   PLAYBACK
+========================================================= */
+
+function startPlayback() {
+  if (
+    S.time >= S.duration
+  ) {
+    seekTo(0);
+  }
+
+  S.playing = true;
+
+  $("#playBtn").textContent =
+    "Ⅱ";
+
+  lastFrame = 0;
+
+  playAudioTracks();
+
+  raf =
+    requestAnimationFrame(
+      playbackTick
+    );
+}
+
+function stopPlayback() {
+  S.playing = false;
+
+  cancelAnimationFrame(raf);
+
+  $("#playBtn").textContent =
+    "▶";
+
+  lastFrame = 0;
+
+  for (
+    const node of
+    canvasNodes.values()
+  ) {
+    node.querySelector("video")
+      ?.pause();
+  }
+
+  stopAudioTracks();
+}
+
+function playbackTick(timestamp) {
+  if (!S.playing) return;
+
+  if (!lastFrame) {
+    lastFrame = timestamp;
+  }
+
+  const delta =
+    (
+      timestamp -
+      lastFrame
+    ) / 1000;
+
+  lastFrame = timestamp;
+
+  S.time += delta;
+
+  if (
+    S.time >= S.duration
+  ) {
+    S.time = S.duration;
+
+    seekTo(S.time);
+
+    stopPlayback();
+
+    return;
+  }
+
+  scrollSync = true;
+
+  $("#timelineViewport")
+    .scrollLeft =
+      S.time *
+      pixelsPerSecond();
+
+  scrollSync = false;
+
+  renderScene();
+
+  raf =
+    requestAnimationFrame(
+      playbackTick
+    );
+}
+
+$("#playBtn").onclick =
+  () => {
+    if (S.playing) {
+      stopPlayback();
+    } else {
+      startPlayback();
+    }
+  };
+
+$("#jumpStartBtn").onclick =
+  () => {
+    stopPlayback();
+    seekTo(0);
+  };
+
+/* =========================================================
+   AUDIO PLAYBACK
+========================================================= */
+
+const activeAudio =
+  new Map();
+
+async function playAudioTracks() {
+  stopAudioTracks();
+
+  for (
+    const item of
+    S.items.filter(
+      x =>
+        x.type === "audio" &&
+        S.time >= x.start &&
+        S.time < x.end
+    )
+  ) {
+    const audio =
+      new Audio(
+        await mediaURL(item)
+      );
+
+    audio.volume =
+      clamp(
+        (item.volume ?? 100) /
+        100,
+        0,
+        1
+      );
+
+    audio.playbackRate =
+      item.speed || 1;
+
+    const sourceTime =
+      item.sourceIn +
+      (
+        S.time -
+        item.start
+      ) *
+      (item.speed || 1);
+
+    try {
+      audio.currentTime =
+        sourceTime;
+    } catch {}
+
+    audio.play()
+      .catch(() => {});
+
+    activeAudio.set(
+      item.id,
+      audio
+    );
+  }
+}
+
+function stopAudioTracks() {
+  for (
+    const audio of
+    activeAudio.values()
+  ) {
+    audio.pause();
+  }
+
+  activeAudio.clear();
+}
+
+/* =========================================================
+   CANVAS POINTERS
 ========================================================= */
 
 $("#canvas").addEventListener(
   "pointerdown",
   event => {
-    const layer = event.target.closest(".canvasLayer");
+    const layer =
+      event.target.closest(
+        ".canvasLayer"
+      );
 
     if (!layer) {
       S.selected = null;
@@ -1486,52 +3215,89 @@ $("#canvas").addEventListener(
       return;
     }
 
-    const it = S.items.find(x => x.id === layer.dataset.id);
+    const item =
+      S.items.find(
+        x =>
+          x.id ===
+          layer.dataset.id
+      );
 
-    if (!it) return;
+    if (!item) return;
 
-    S.selected = it.id;
+    S.selected = item.id;
 
     updateToolbar();
-    renderScene();
     renderTimeline();
+    renderScene();
 
-    pointers.set(event.pointerId, {
-      x: event.clientX,
-      y: event.clientY
-    });
+    if (item.locked) {
+      toast("🔒 ロック中");
+      return;
+    }
 
-    $("#canvas").setPointerCapture?.(event.pointerId);
+    pointers.set(
+      event.pointerId,
+      {
+        x: event.clientX,
+        y: event.clientY
+      }
+    );
 
-    if (pointers.size === 1) {
+    $("#canvas")
+      .setPointerCapture?.(
+        event.pointerId
+      );
+
+    if (
+      pointers.size === 1
+    ) {
       pushHistory();
+
+      historyGestureStarted =
+        true;
 
       canvasGesture = {
         type: "move",
 
-        x: it.x,
-        y: it.y,
+        x: item.x,
+        y: item.y,
 
-        startX: event.clientX,
-        startY: event.clientY
+        startX:
+          event.clientX,
+
+        startY:
+          event.clientY
       };
     }
 
-    if (pointers.size === 2) {
-      const pts = [...pointers.values()];
+    if (
+      pointers.size === 2
+    ) {
+      const points =
+        [...pointers.values()];
 
-      const dx = pts[1].x - pts[0].x;
-      const dy = pts[1].y - pts[0].y;
+      const dx =
+        points[1].x -
+        points[0].x;
+
+      const dy =
+        points[1].y -
+        points[0].y;
 
       canvasGesture = {
         type: "pinch",
 
-        distance: Math.hypot(dx, dy),
-        angle: Math.atan2(dy, dx),
+        distance:
+          Math.hypot(dx, dy),
 
-        w: it.w,
-        h: it.h,
-        rotation: it.rotation || 0
+        angle:
+          Math.atan2(dy, dx),
+
+        w: item.w,
+        h: item.h,
+
+        rotation:
+          item.rotation || 0
       };
     }
 
@@ -1539,67 +3305,102 @@ $("#canvas").addEventListener(
   }
 );
 
+/* =========================================================
+   CANVAS MOVE
+========================================================= */
+
 $("#canvas").addEventListener(
   "pointermove",
   event => {
-    if (!pointers.has(event.pointerId)) return;
+    if (
+      !pointers.has(
+        event.pointerId
+      )
+    ) {
+      return;
+    }
 
-    pointers.set(event.pointerId, {
-      x: event.clientX,
-      y: event.clientY
-    });
+    pointers.set(
+      event.pointerId,
+      {
+        x: event.clientX,
+        y: event.clientY
+      }
+    );
 
-    const it = selectedItem();
-
-    if (!it) return;
-
-    const pts = [...pointers.values()];
+    const item =
+      selectedItem();
 
     if (
-      pts.length === 1 &&
-      canvasGesture?.type === "move"
+      !item ||
+      item.locked
     ) {
-      it.x =
+      return;
+    }
+
+    const points =
+      [...pointers.values()];
+
+    if (
+      points.length === 1 &&
+      canvasGesture?.type ===
+      "move"
+    ) {
+      item.x =
         canvasGesture.x +
-        pts[0].x -
+        points[0].x -
         canvasGesture.startX;
 
-      it.y =
+      item.y =
         canvasGesture.y +
-        pts[0].y -
+        points[0].y -
         canvasGesture.startY;
 
-      applySnapping(it);
+      applySnapping(item);
 
-      autoUpdateKeyframe(it);
+      updateCurrentKey(item);
 
       renderScene();
     }
 
     if (
-      pts.length === 2 &&
-      canvasGesture?.type === "pinch"
+      points.length === 2 &&
+      canvasGesture?.type ===
+      "pinch"
     ) {
-      const dx = pts[1].x - pts[0].x;
-      const dy = pts[1].y - pts[0].y;
+      const dx =
+        points[1].x -
+        points[0].x;
 
-      const distance = Math.hypot(dx, dy);
+      const dy =
+        points[1].y -
+        points[0].y;
+
+      const distance =
+        Math.hypot(dx, dy);
 
       const scale =
         distance /
-        Math.max(1, canvasGesture.distance);
+        Math.max(
+          1,
+          canvasGesture.distance
+        );
 
-      it.w = Math.max(
-        20,
-        canvasGesture.w * scale
-      );
+      item.w =
+        Math.max(
+          18,
+          canvasGesture.w *
+          scale
+        );
 
-      it.h = Math.max(
-        20,
-        canvasGesture.h * scale
-      );
+      item.h =
+        Math.max(
+          18,
+          canvasGesture.h *
+          scale
+        );
 
-      it.rotation =
+      item.rotation =
         canvasGesture.rotation +
         (
           Math.atan2(dy, dx) -
@@ -1608,7 +3409,7 @@ $("#canvas").addEventListener(
         180 /
         Math.PI;
 
-      autoUpdateKeyframe(it);
+      updateCurrentKey(item);
 
       renderScene();
     }
@@ -1617,13 +3418,20 @@ $("#canvas").addEventListener(
   }
 );
 
-function endCanvasPointer(event) {
-  pointers.delete(event.pointerId);
+function endCanvasPointer(
+  event
+) {
+  pointers.delete(
+    event.pointerId
+  );
 
   hideGuides();
 
   if (!pointers.size) {
     canvasGesture = null;
+
+    historyGestureStarted =
+      false;
 
     saveProject();
     renderTimeline();
@@ -1641,1290 +3449,208 @@ $("#canvas").addEventListener(
 );
 
 /* =========================================================
-   SNAP
+   GUIDES / SNAP
 ========================================================= */
 
 function hideGuides() {
-  $$(".snapGuide").forEach(x =>
-    x.classList.remove("show")
+  $$(".snapGuide").forEach(
+    x =>
+      x.classList.remove(
+        "show"
+      )
   );
 }
 
-function applySnapping(it) {
+function applySnapping(item) {
   hideGuides();
 
-  const canvas = $("#canvas");
+  const canvas =
+    $("#canvas");
 
-  const cw = canvas.clientWidth;
-  const ch = canvas.clientHeight;
+  const cw =
+    canvas.clientWidth;
 
-  const cx = it.x + it.w / 2;
-  const cy = it.y + it.h / 2;
+  const ch =
+    canvas.clientHeight;
 
   const threshold = 8;
 
-  if (Math.abs(cx - cw / 2) < threshold) {
-    it.x = cw / 2 - it.w / 2;
-    $("#guideX").classList.add("show");
+  let cx =
+    item.x + item.w / 2;
+
+  let cy =
+    item.y + item.h / 2;
+
+  if (
+    Math.abs(
+      cx - cw / 2
+    ) < threshold
+  ) {
+    item.x =
+      cw / 2 -
+      item.w / 2;
+
+    $("#guideX")
+      .classList.add("show");
   }
 
-  if (Math.abs(cy - ch / 2) < threshold) {
-    it.y = ch / 2 - it.h / 2;
-    $("#guideY").classList.add("show");
+  if (
+    Math.abs(
+      cy - ch / 2
+    ) < threshold
+  ) {
+    item.y =
+      ch / 2 -
+      item.h / 2;
+
+    $("#guideY")
+      .classList.add("show");
   }
 
-  if (Math.abs(it.x) < threshold) {
-    it.x = 0;
-    $("#guideLeft").classList.add("show");
+  if (
+    Math.abs(item.x) <
+    threshold
+  ) {
+    item.x = 0;
+
+    $("#guideLeft")
+      .classList.add("show");
   }
 
-  if (Math.abs(it.y) < threshold) {
-    it.y = 0;
-    $("#guideTop").classList.add("show");
+  if (
+    Math.abs(item.y) <
+    threshold
+  ) {
+    item.y = 0;
+
+    $("#guideTop")
+      .classList.add("show");
   }
 
-  if (Math.abs(it.x + it.w - cw) < threshold) {
-    it.x = cw - it.w;
-    $("#guideRight").classList.add("show");
+  if (
+    Math.abs(
+      item.x +
+      item.w -
+      cw
+    ) < threshold
+  ) {
+    item.x =
+      cw - item.w;
+
+    $("#guideRight")
+      .classList.add("show");
   }
 
-  if (Math.abs(it.y + it.h - ch) < threshold) {
-    it.y = ch - it.h;
-    $("#guideBottom").classList.add("show");
+  if (
+    Math.abs(
+      item.y +
+      item.h -
+      ch
+    ) < threshold
+  ) {
+    item.y =
+      ch - item.h;
+
+    $("#guideBottom")
+      .classList.add("show");
+  }
+
+  /* Other-object snapping */
+
+  cx =
+    item.x + item.w / 2;
+
+  cy =
+    item.y + item.h / 2;
+
+  for (
+    const other of
+    S.items
+  ) {
+    if (
+      other.id === item.id ||
+      other.type === "audio" ||
+      other.visible === false
+    ) {
+      continue;
+    }
+
+    if (
+      S.time < other.start ||
+      S.time > other.end
+    ) {
+      continue;
+    }
+
+    const ox =
+      other.x +
+      other.w / 2;
+
+    const oy =
+      other.y +
+      other.h / 2;
+
+    if (
+      Math.abs(
+        cx - ox
+      ) < threshold
+    ) {
+      item.x =
+        ox -
+        item.w / 2;
+
+      const guide =
+        $("#objectGuideX");
+
+      guide.style.left =
+        `${ox}px`;
+
+      guide.classList.add(
+        "show"
+      );
+    }
+
+    if (
+      Math.abs(
+        cy - oy
+      ) < threshold
+    ) {
+      item.y =
+        oy -
+        item.h / 2;
+
+      const guide =
+        $("#objectGuideY");
+
+      guide.style.top =
+        `${oy}px`;
+
+      guide.classList.add(
+        "show"
+      );
+    }
   }
 }
 
 /* =========================================================
-   KEYFRAME
-========================================================= */
-
-function currentTransformKey(it) {
-  return {
-    time: S.time,
-
-    x: it.x,
-    y: it.y,
-
-    w: it.w,
-    h: it.h,
-
-    rotation: it.rotation || 0,
-    opacity: it.opacity ?? 100
-  };
-}
-
-function addKeyframe(it) {
-  it.keyframes ||= [];
-
-  const key = currentTransformKey(it);
-
-  const index = it.keyframes.findIndex(
-    x => Math.abs(x.time - S.time) < 0.025
-  );
-
-  if (index >= 0) {
-    it.keyframes[index] = key;
-  } else {
-    it.keyframes.push(key);
-  }
-
-  it.keyframes.sort((a, b) => a.time - b.time);
-
-  toast("◇ キーフレーム");
-
-  saveProject();
-  renderTimeline();
-}
-
-function autoUpdateKeyframe(it) {
-  if (!it.keyframes?.length) return;
-
-  const key = it.keyframes.find(
-    x => Math.abs(x.time - S.time) < 0.035
-  );
-
-  if (!key) return;
-
-  Object.assign(key, currentTransformKey(it));
-}
-
-/* =========================================================
-   PLAYBACK
-========================================================= */
-
-function stopPlayback() {
-  S.playing = false;
-
-  cancelAnimationFrame(playingRAF);
-
-  $("#playBtn").textContent = "▶";
-
-  for (const node of canvasNodes.values()) {
-    node.querySelector("video")?.pause();
-  }
-
-  lastFrame = 0;
-}
-
-function startPlayback() {
-  if (S.time >= S.duration) {
-    seekTimelineTo(0, false);
-  }
-
-  S.playing = true;
-
-  $("#playBtn").textContent = "Ⅱ";
-
-  lastFrame = 0;
-
-  playingRAF = requestAnimationFrame(playTick);
-}
-
-function playTick(timestamp) {
-  if (!S.playing) return;
-
-  if (!lastFrame) {
-    lastFrame = timestamp;
-  }
-
-  const delta =
-    (timestamp - lastFrame) / 1000;
-
-  lastFrame = timestamp;
-
-  S.time += delta;
-
-  if (S.time >= S.duration) {
-    S.time = S.duration;
-
-    timelineBusy = true;
-
-    $("#timelineViewport").scrollLeft =
-      S.time * pixelsPerSecond();
-
-    timelineBusy = false;
-
-    renderScene();
-    stopPlayback();
-
-    return;
-  }
-
-  timelineBusy = true;
-
-  $("#timelineViewport").scrollLeft =
-    S.time * pixelsPerSecond();
-
-  timelineBusy = false;
-
-  renderScene();
-
-  playingRAF =
-    requestAnimationFrame(playTick);
-}
-
-$("#playBtn").onclick = () => {
-  if (S.playing) {
-    stopPlayback();
-  } else {
-    startPlayback();
-  }
-};
-
-$("#jumpStartBtn").onclick = () => {
-  stopPlayback();
-  seekTimelineTo(0, false);
-};
-
-/* =========================================================
-   TOOLBAR STATE
+   TOOLBAR
 ========================================================= */
 
 function updateToolbar() {
-  const selected = !!S.selected;
+  const selected =
+    !!selectedItem();
 
-  $("#mainToolbar").hidden = selected;
-  $("#clipToolbar").hidden = !selected;
+  $("#mainToolbar").hidden =
+    selected;
+
+  $("#clipToolbar").hidden =
+    !selected;
+
+  $("#pasteButton").hidden =
+    !copiedItem;
 }
 
 /* =========================================================
-   MAIN TOOLBAR
+   END OF PART 1
+   PART 2 CONTINUES DIRECTLY BELOW THIS LINE
 ========================================================= */
-
-$("#mainToolbar").addEventListener(
-  "click",
-  event => {
-    const button =
-      event.target.closest("[data-main-tool]");
-
-    if (!button) return;
-
-    const tool = button.dataset.mainTool;
-
-    if (tool === "canvas") {
-      openCanvasSheet();
-    }
-
-    if (tool === "text") {
-      createText();
-    }
-
-    if (tool === "music") {
-      toast("音楽トラックは次の実装段階");
-    }
-
-    if (tool === "sticker") {
-      toast("ステッカーライブラリは次の実装段階");
-    }
-
-    if (tool === "background") {
-      openBackgroundSheet();
-    }
-  }
-);
-
-/* =========================================================
-   CANVAS SHEET
-========================================================= */
-
-function openSheet(title, html, onApply = null) {
-  $("#sheetTitle").textContent = title;
-  $("#sheetContent").innerHTML = html;
-  $("#editSheet").hidden = false;
-
-  pendingSheetApply = onApply;
-}
-
-function closeSheet() {
-  $("#editSheet").hidden = true;
-  pendingSheetApply = null;
-}
-
-$("#sheetCancel").onclick = closeSheet;
-
-$("#sheetApply").onclick = () => {
-  pendingSheetApply?.();
-  closeSheet();
-
-  saveProject();
-  renderTimeline();
-  renderScene();
-};
-
-function openCanvasSheet() {
-  openSheet(
-    "キャンバス",
-    `
-      <div class="optionRow">
-        ${["9:16", "16:9", "1:1", "4:5", "4:3"]
-          .map(x => `
-            <button
-              class="optionButton ${S.aspect === x ? "active" : ""}"
-              data-aspect="${x}"
-            >
-              ${x}
-            </button>
-          `)
-          .join("")}
-      </div>
-    `
-  );
-}
-
-function openBackgroundSheet() {
-  openSheet(
-    "背景",
-    `
-      <div class="optionRow">
-        ${[
-          "#000000",
-          "#111111",
-          "#ffffff",
-          "#355070",
-          "#6d597a",
-          "#b56576"
-        ]
-          .map(x => `
-            <button
-              class="optionButton"
-              data-background="${x}"
-              style="background:${x};min-height:48px"
-            >
-            </button>
-          `)
-          .join("")}
-      </div>
-    `
-  );
-}
-
-$("#sheetContent").addEventListener(
-  "click",
-  event => {
-    const aspect = event.target.dataset.aspect;
-
-    if (aspect) {
-      pushHistory();
-
-      S.aspect = aspect;
-
-      $$("#sheetContent [data-aspect]").forEach(x =>
-        x.classList.toggle(
-          "active",
-          x.dataset.aspect === aspect
-        )
-      );
-
-      updateCanvasAspect();
-      renderScene();
-    }
-
-    const bg = event.target.dataset.background;
-
-    if (bg) {
-      pushHistory();
-
-      S.background = bg;
-
-      updateCanvasAspect();
-      renderScene();
-    }
-
-    const speed = event.target.dataset.speed;
-
-    if (speed) {
-      const it = selectedItem();
-
-      if (!it) return;
-
-      pushHistory();
-
-      it.speed = Number(speed);
-
-      if (it.type === "video") {
-        it.end =
-          it.start +
-          (it.sourceOut - it.sourceIn) /
-          it.speed;
-      }
-
-      recalcDuration();
-
-      renderTimeline();
-      renderScene();
-    }
-
-    const layer = event.target.dataset.layer;
-
-    if (layer) {
-      changeLayer(layer);
-    }
-  }
-);
-
-/* =========================================================
-   TEXT
-========================================================= */
-
-function createText() {
-  pushHistory();
-
-  const cw = $("#canvas").clientWidth || 300;
-  const ch = $("#canvas").clientHeight || 533;
-
-  const it = {
-    id: uid(),
-
-    type: "text",
-    track: "text",
-
-    name: "テキスト",
-    text: "TEXT",
-
-    start: S.time,
-    end: Math.max(S.time + 3, S.duration),
-
-    x: cw * 0.15,
-    y: ch * 0.42,
-
-    w: cw * 0.7,
-    h: 70,
-
-    rotation: 0,
-    opacity: 100,
-
-    flipX: false,
-
-    fontSize: 32,
-    color: "#ffffff",
-
-    stroke: 0,
-    strokeColor: "#000000",
-
-    keyframes: [],
-
-    animation: {
-      in: null,
-      out: null,
-      loop: null,
-      pb: null
-    }
-  };
-
-  S.items.push(it);
-  S.selected = it.id;
-
-  recalcDuration();
-
-  rebuildCanvas().then(() => {
-    renderScene();
-  });
-
-  renderTimeline();
-  updateToolbar();
-
-  openTextEditor(it);
-}
-
-function openTextEditor(it) {
-  textBackup = structuredClone(it);
-
-  $("#textInput").value = it.text || "";
-  $("#textSize").value = it.fontSize || 32;
-  $("#textColor").value = it.color || "#ffffff";
-  $("#textStroke").value = it.stroke || 0;
-
-  $("#textEditor").hidden = false;
-}
-
-$("#textInput").oninput = () => {
-  const it = selectedItem();
-
-  if (!it || it.type !== "text") return;
-
-  it.text = $("#textInput").value;
-  it.name = it.text || "テキスト";
-
-  renderScene();
-};
-
-$("#textSize").oninput = () => {
-  const it = selectedItem();
-
-  if (!it || it.type !== "text") return;
-
-  it.fontSize = Number($("#textSize").value);
-
-  renderScene();
-};
-
-$("#textColor").oninput = () => {
-  const it = selectedItem();
-
-  if (!it || it.type !== "text") return;
-
-  it.color = $("#textColor").value;
-
-  renderScene();
-};
-
-$("#textStroke").oninput = () => {
-  const it = selectedItem();
-
-  if (!it || it.type !== "text") return;
-
-  it.stroke = Number($("#textStroke").value);
-
-  renderScene();
-};
-
-$("#textApply").onclick = () => {
-  $("#textEditor").hidden = true;
-
-  textBackup = null;
-
-  saveProject();
-  renderTimeline();
-  renderScene();
-};
-
-$("#textCancel").onclick = () => {
-  const it = selectedItem();
-
-  if (it && textBackup) {
-    Object.assign(it, textBackup);
-  }
-
-  $("#textEditor").hidden = true;
-
-  textBackup = null;
-
-  renderTimeline();
-  renderScene();
-};
-
-/* =========================================================
-   CLIP TOOLBAR
-========================================================= */
-
-$("#clipToolbar").addEventListener(
-  "click",
-  event => {
-    const button =
-      event.target.closest("[data-clip-tool]");
-
-    if (!button) return;
-
-    const it = selectedItem();
-
-    if (!it) return;
-
-    const tool = button.dataset.clipTool;
-
-    if (tool === "done") {
-      S.selected = null;
-
-      updateToolbar();
-      renderTimeline();
-      renderScene();
-
-      return;
-    }
-
-    if (tool === "split") {
-      splitSelected();
-      return;
-    }
-
-    if (tool === "trim") {
-      toast("白い左右ハンドルをドラッグ");
-      return;
-    }
-
-    if (tool === "speed") {
-      openSpeedSheet(it);
-      return;
-    }
-
-    if (tool === "volume") {
-      openVolumeSheet(it);
-      return;
-    }
-
-    if (tool === "animation") {
-      openAnimationPanel(it);
-      return;
-    }
-
-    if (tool === "keyframe") {
-      pushHistory();
-      addKeyframe(it);
-      return;
-    }
-
-    if (tool === "transform") {
-      openTransformSheet(it);
-      return;
-    }
-
-    if (tool === "crop") {
-      toast("クロップUIは次段階");
-      return;
-    }
-
-    if (tool === "filter") {
-      openFilterSheet(it);
-      return;
-    }
-
-    if (tool === "layer") {
-      openLayerSheet();
-      return;
-    }
-
-    if (tool === "rotate") {
-      pushHistory();
-
-      it.rotation =
-        ((it.rotation || 0) + 90) % 360;
-
-      autoUpdateKeyframe(it);
-
-      saveProject();
-      renderScene();
-
-      return;
-    }
-
-    if (tool === "flip") {
-      pushHistory();
-
-      it.flipX = !it.flipX;
-
-      saveProject();
-      renderScene();
-
-      return;
-    }
-
-    if (tool === "duplicate") {
-      duplicateSelected();
-      return;
-    }
-
-    if (tool === "delete") {
-      deleteSelected();
-    }
-  }
-);
-
-/* =========================================================
-   SPLIT
-========================================================= */
-
-function splitSelected() {
-  const it = selectedItem();
-
-  if (!it) return;
-
-  if (
-    S.time <= it.start + 0.02 ||
-    S.time >= it.end - 0.02
-  ) {
-    toast("白線をクリップの途中に置いてください");
-    return;
-  }
-
-  pushHistory();
-
-  const right = structuredClone(it);
-
-  right.id = uid();
-  right.name = it.name + " 2";
-
-  const oldEnd = it.end;
-
-  if (it.type === "video") {
-    const sourceCut =
-      it.sourceIn +
-      (S.time - it.start) *
-      (it.speed || 1);
-
-    it.sourceOut = sourceCut;
-    right.sourceIn = sourceCut;
-  }
-
-  it.end = S.time;
-
-  right.start = S.time;
-  right.end = oldEnd;
-
-  const index = S.items.indexOf(it);
-
-  S.items.splice(index + 1, 0, right);
-
-  S.selected = right.id;
-
-  saveProject();
-
-  rebuildCanvas().then(renderScene);
-
-  renderTimeline();
-  updateToolbar();
-}
-
-/* =========================================================
-   SPEED
-========================================================= */
-
-function openSpeedSheet(it) {
-  openSheet(
-    "速度",
-    `
-      <div class="optionRow">
-        ${[0.25, 0.5, 1, 1.5, 2, 3, 4]
-          .map(x => `
-            <button
-              class="optionButton ${it.speed === x ? "active" : ""}"
-              data-speed="${x}"
-            >
-              ${x}×
-            </button>
-          `)
-          .join("")}
-      </div>
-    `
-  );
-}
-
-/* =========================================================
-   VOLUME
-========================================================= */
-
-function openVolumeSheet(it) {
-  openSheet(
-    "音量",
-    `
-      <div class="propertyGrid">
-        <label class="propertyWide">
-          音量
-          <input
-            id="volumeSlider"
-            type="range"
-            min="0"
-            max="100"
-            value="${it.volume ?? 100}"
-          >
-        </label>
-      </div>
-    `
-  );
-
-  $("#volumeSlider").oninput = () => {
-    it.volume = Number($("#volumeSlider").value);
-
-    renderScene();
-  };
-}
-
-/* =========================================================
-   TRANSFORM
-========================================================= */
-
-function openTransformSheet(it) {
-  openSheet(
-    "変形",
-    `
-      <div class="propertyGrid">
-
-        ${[
-          ["transformX", "X", it.x],
-          ["transformY", "Y", it.y],
-          ["transformW", "幅", it.w],
-          ["transformH", "高さ", it.h],
-          ["transformR", "回転", it.rotation || 0],
-          ["transformO", "透明度", it.opacity ?? 100]
-        ]
-          .map(([id, label, value]) => `
-            <label>
-              ${label}
-              <input
-                id="${id}"
-                type="number"
-                step=".1"
-                value="${value}"
-              >
-            </label>
-          `)
-          .join("")}
-
-      </div>
-    `
-  );
-
-  const map = {
-    transformX: "x",
-    transformY: "y",
-    transformW: "w",
-    transformH: "h",
-    transformR: "rotation",
-    transformO: "opacity"
-  };
-
-  for (const [id, property] of Object.entries(map)) {
-    $("#" + id).oninput = () => {
-      it[property] = Number($("#" + id).value);
-
-      autoUpdateKeyframe(it);
-      renderScene();
-    };
-  }
-}
-
-/* =========================================================
-   FILTER
-========================================================= */
-
-function openFilterSheet(it) {
-  openSheet(
-    "調整",
-    `
-      <div class="propertyGrid">
-
-        <label class="propertyWide">
-          明るさ
-          <input
-            id="brightnessSlider"
-            type="range"
-            min="0"
-            max="200"
-            value="${it.brightness ?? 100}"
-          >
-        </label>
-
-        <label class="propertyWide">
-          コントラスト
-          <input
-            id="contrastSlider"
-            type="range"
-            min="0"
-            max="200"
-            value="${it.contrast ?? 100}"
-          >
-        </label>
-
-        <label class="propertyWide">
-          彩度
-          <input
-            id="saturationSlider"
-            type="range"
-            min="0"
-            max="200"
-            value="${it.saturation ?? 100}"
-          >
-        </label>
-
-      </div>
-    `
-  );
-
-  $("#brightnessSlider").oninput = () => {
-    it.brightness = Number($("#brightnessSlider").value);
-    renderScene();
-  };
-
-  $("#contrastSlider").oninput = () => {
-    it.contrast = Number($("#contrastSlider").value);
-    renderScene();
-  };
-
-  $("#saturationSlider").oninput = () => {
-    it.saturation = Number($("#saturationSlider").value);
-    renderScene();
-  };
-}
-
-/* =========================================================
-   LAYER
-========================================================= */
-
-function openLayerSheet() {
-  openSheet(
-    "レイヤー",
-    `
-      <div class="optionRow">
-        <button class="optionButton" data-layer="front">
-          最前面
-        </button>
-
-        <button class="optionButton" data-layer="forward">
-          前へ
-        </button>
-
-        <button class="optionButton" data-layer="backward">
-          後ろへ
-        </button>
-
-        <button class="optionButton" data-layer="back">
-          最背面
-        </button>
-      </div>
-    `
-  );
-}
-
-function changeLayer(action) {
-  const it = selectedItem();
-
-  if (!it) return;
-
-  pushHistory();
-
-  let index = S.items.indexOf(it);
-
-  S.items.splice(index, 1);
-
-  if (action === "front") {
-    S.items.push(it);
-  }
-
-  if (action === "back") {
-    S.items.unshift(it);
-  }
-
-  if (action === "forward") {
-    index = Math.min(S.items.length, index + 1);
-    S.items.splice(index, 0, it);
-  }
-
-  if (action === "backward") {
-    index = Math.max(0, index - 1);
-    S.items.splice(index, 0, it);
-  }
-
-  saveProject();
-  renderScene();
-}
-
-/* =========================================================
-   DUPLICATE / DELETE
-========================================================= */
-
-function duplicateSelected() {
-  const it = selectedItem();
-
-  if (!it) return;
-
-  pushHistory();
-
-  const copy = structuredClone(it);
-
-  copy.id = uid();
-  copy.name += " コピー";
-
-  copy.x += 14;
-  copy.y += 14;
-
-  copy.start += 0.1;
-  copy.end += 0.1;
-
-  S.items.push(copy);
-
-  S.selected = copy.id;
-
-  recalcDuration();
-  saveProject();
-
-  rebuildCanvas().then(renderScene);
-
-  renderTimeline();
-}
-
-function deleteSelected() {
-  const it = selectedItem();
-
-  if (!it) return;
-
-  pushHistory();
-
-  S.items = S.items.filter(x => x.id !== it.id);
-
-  S.selected = null;
-
-  recalcDuration();
-  saveProject();
-
-  rebuildCanvas().then(renderScene);
-
-  renderTimeline();
-  updateToolbar();
-}
-
-/* =========================================================
-   ANIMATION
-========================================================= */
-
-let animationTab = "in";
-let chosenAnimation = null;
-
-const animations = {
-  in: [
-    ["フェード", "◌"],
-    ["ポップ", "✦"],
-    ["左から", "→"],
-    ["右から", "←"],
-    ["上から", "↓"],
-    ["下から", "↑"]
-  ],
-
-  out: [
-    ["フェード", "◌"],
-    ["縮小", "•"],
-    ["左へ", "←"],
-    ["右へ", "→"],
-    ["上へ", "↑"],
-    ["下へ", "↓"]
-  ],
-
-  loop: [
-    ["揺れる", "↔"],
-    ["浮く", "↕"],
-    ["回転", "↻"],
-    ["脈動", "◎"]
-  ],
-
-  pb: [
-    ["ぷるん", "◉"],
-    ["歩く", "🚶"],
-    ["走る", "➜"],
-    ["ジャンプ", "↑"],
-    ["着地", "↓"],
-    ["怒り", "〰"],
-    ["衝突", "✹"],
-    ["吹っ飛ぶ", "➤"],
-    ["転がる", "↻"],
-    ["呼吸", "◎"]
-  ]
-};
-
-function openAnimationPanel(it) {
-  animationTab = "in";
-  chosenAnimation = it.animation?.in?.name || null;
-
-  $("#animationPanel").hidden = false;
-
-  renderAnimationList();
-}
-
-function renderAnimationList() {
-  $$(".animationTabs button").forEach(button => {
-    button.classList.toggle(
-      "active",
-      button.dataset.animationTab === animationTab
-    );
-  });
-
-  $("#animationList").innerHTML =
-    animations[animationTab]
-      .map(([name, icon]) => `
-        <button
-          class="animationItem ${
-            chosenAnimation === name ? "active" : ""
-          }"
-          data-animation="${name}"
-        >
-          ${icon}
-          <span>${name}</span>
-        </button>
-      `)
-      .join("");
-}
-
-$(".animationTabs").onclick = event => {
-  const button =
-    event.target.closest("[data-animation-tab]");
-
-  if (!button) return;
-
-  animationTab = button.dataset.animationTab;
-
-  const it = selectedItem();
-
-  chosenAnimation =
-    it?.animation?.[animationTab]?.name || null;
-
-  renderAnimationList();
-};
-
-$("#animationList").onclick = event => {
-  const button =
-    event.target.closest("[data-animation]");
-
-  if (!button) return;
-
-  chosenAnimation = button.dataset.animation;
-
-  renderAnimationList();
-};
-
-$("#animationClose").onclick = () => {
-  $("#animationPanel").hidden = true;
-};
-
-$("#animationApply").onclick = () => {
-  const it = selectedItem();
-
-  if (!it) return;
-
-  pushHistory();
-
-  it.animation ||= {
-    in: null,
-    out: null,
-    loop: null,
-    pb: null
-  };
-
-  it.animation[animationTab] = chosenAnimation
-    ? {
-        name: chosenAnimation,
-        duration: Number($("#animationDuration").value),
-        strength: Number($("#animationStrength").value)
-      }
-    : null;
-
-  $("#animationPanel").hidden = true;
-
-  saveProject();
-  renderScene();
-
-  toast(`${chosenAnimation || "なし"} を設定`);
-};
-
-/* =========================================================
-   FILE INPUTS
-========================================================= */
-
-$("#newProjectMedia").onchange =
-  async event => {
-    const files = [...event.target.files];
-
-    if (!files.length) return;
-
-    const p = createProject();
-
-    await openProject(p.id);
-    await addFiles(files, "main");
-
-    event.target.value = "";
-  };
-
-$("#newBlankProject").onclick =
-  async () => {
-    const p = createProject();
-
-    await openProject(p.id);
-  };
-
-$("#addMainMedia").onchange =
-  async event => {
-    await addFiles(
-      [...event.target.files],
-      "main"
-    );
-
-    event.target.value = "";
-  };
-
-$("#addPipMedia").onchange =
-  async event => {
-    await addFiles(
-      [...event.target.files],
-      "pip"
-    );
-
-    event.target.value = "";
-  };
-
-/* =========================================================
-   BACK
-========================================================= */
-
-$("#editorBack").onclick = () => {
-  stopPlayback();
-
-  saveProject();
-
-  S.selected = null;
-
-  showScreen("home");
-
-  renderHome();
-};
-
-/* =========================================================
-   PROJECT NAME
-========================================================= */
-
-$("#projectName").oninput = () => {
-  $("#saveStatus").textContent = "編集中";
-};
-
-$("#projectName").onchange = saveProject;
-
-/* =========================================================
-   UNDO / REDO
-========================================================= */
-
-$("#undoBtn").onclick = () => {
-  if (!S.undo.length) return;
-
-  stopPlayback();
-
-  S.redo.push(stateSnapshot());
-
-  const previous = S.undo.pop();
-
-  restoreSnapshot(previous);
-};
-
-$("#redoBtn").onclick = () => {
-  if (!S.redo.length) return;
-
-  stopPlayback();
-
-  S.undo.push(stateSnapshot());
-
-  const next = S.redo.pop();
-
-  restoreSnapshot(next);
-};
-
-/* =========================================================
-   EXPORT PLACEHOLDER
-========================================================= */
-
-$("#exportBtn").onclick = () => {
-  saveProject();
-
-  toast(
-    "プロジェクトを保存しました。動画書き出しはまだ未実装です"
-  );
-};
-
-/* =========================================================
-   SETTINGS
-========================================================= */
-
-$("#settingsBtn").onclick = () => {
-  alert(
-    "PB Editor v3.0\n\n" +
-    "プロジェクト情報: localStorage\n" +
-    "画像・動画: IndexedDB\n\n" +
-    "v3.0 Editor Rebuild"
-  );
-};
-
-/* =========================================================
-   FULLSCREEN PREVIEW
-========================================================= */
-
-$("#fullscreenPreview").onclick = async () => {
-  const viewport = $("#previewViewport");
-
-  try {
-    if (!document.fullscreenElement) {
-      await viewport.requestFullscreen?.();
-    } else {
-      await document.exitFullscreen?.();
-    }
-  } catch {
-    toast("このブラウザでは全画面表示できません");
-  }
-};
-
-/* =========================================================
-   RESIZE
-========================================================= */
-
-window.addEventListener("resize", () => {
-  if (!$("#editorScreen").classList.contains("active")) return;
-
-  const time = S.time;
-
-  renderTimeline();
-
-  requestAnimationFrame(() => {
-    seekTimelineTo(time, false);
-  });
-});
-
-/* =========================================================
-   INITIALIZE
-========================================================= */
-
-loadProjectList();
-
-showScreen("home");
-
-})();
