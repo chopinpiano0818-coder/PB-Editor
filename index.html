@@ -1,8 +1,6 @@
 <!doctype html>
 <html lang="ja">
-
 <head>
-
 <meta charset="utf-8">
 
 <meta
@@ -16,38 +14,21 @@
   "
 >
 
-<meta
-  name="apple-mobile-web-app-capable"
-  content="yes"
->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-<meta
-  name="apple-mobile-web-app-status-bar-style"
-  content="black-translucent"
->
+<title>PB Editor v3.1</title>
 
-<title>PB Editor v3.0</title>
-
-<link
-  rel="stylesheet"
-  href="style.css"
->
-
+<link rel="stylesheet" href="style.css">
 </head>
-
 
 <body>
 
-
-<!-- ======================================================
+<!-- =====================================================
      HOME
-====================================================== -->
+===================================================== -->
 
-<section
-  id="homeScreen"
-  class="screen active"
->
-
+<section id="homeScreen" class="screen active">
 
 <header class="homeHeader">
 
@@ -57,317 +38,300 @@
       PB
     </div>
 
-    <div>
-
-      <h1>
-        PB Editor
-      </h1>
-
-      <small>
-        v3.0 Editor Rebuild
-      </small>
-
+    <div class="brandText">
+      <h1>PB Editor</h1>
+      <small>v3.1 Studio</small>
     </div>
 
   </div>
 
-
-  <button
-    id="settingsBtn"
-    class="iconBtn"
-  >
+  <button id="settingsBtn" class="iconBtn">
     ⚙
   </button>
 
 </header>
 
 
-
 <main class="homeContent">
 
-
-<!-- NEW PROJECT -->
-
 <section class="homeSection">
 
-<h2>
-  新しく作る
-</h2>
+  <h2>新しく作る</h2>
+
+  <div class="createGrid">
+
+    <label class="createCard primary">
+
+      <div class="createIcon">
+        ▶
+      </div>
+
+      <b>ビデオ</b>
+
+      <span>
+        動画・写真から作成
+      </span>
+
+      <input
+        id="newProjectMedia"
+        type="file"
+        accept="video/*,image/*"
+        multiple
+        hidden
+      >
+
+    </label>
 
 
-<div class="createGrid">
+    <button
+      id="newBlankProject"
+      class="createCard"
+    >
 
+      <div class="createIcon">
+        ＋
+      </div>
 
-<label class="createCard primary">
+      <b>空のプロジェクト</b>
 
-  <div class="createIcon">
-    ▶
+      <span>
+        素材をあとから追加
+      </span>
+
+    </button>
+
   </div>
-
-  <b>
-    ビデオ
-  </b>
-
-  <span>
-    動画・写真から作成
-  </span>
-
-  <input
-    id="newProjectMedia"
-    type="file"
-    accept="video/*,image/*"
-    multiple
-    hidden
-  >
-
-</label>
-
-
-
-<button
-  id="newBlankProject"
-  class="createCard"
->
-
-  <div class="createIcon">
-    ＋
-  </div>
-
-  <b>
-    空のプロジェクト
-  </b>
-
-  <span>
-    素材をあとから追加
-  </span>
-
-</button>
-
-
-</div>
 
 </section>
 
 
-
-<!-- RECENT PROJECTS -->
-
 <section class="homeSection">
 
+  <div class="sectionTitle">
 
-<div class="sectionTitle">
+    <h2>
+      最近のプロジェクト
+    </h2>
 
-<h2>
-  最近のプロジェクト
-</h2>
+    <span id="storageStatus">
+      IndexedDB
+    </span>
 
-<span id="storageStatus">
-  IndexedDB
-</span>
+  </div>
 
-</div>
-
-
-<div
-  id="projectGrid"
-  class="projectGrid"
-></div>
-
+  <div
+    id="projectGrid"
+    class="projectGrid"
+  ></div>
 
 </section>
-
 
 </main>
 
 </section>
 
 
-
-<!-- ======================================================
+<!-- =====================================================
      EDITOR
-====================================================== -->
+===================================================== -->
 
-<section
-  id="editorScreen"
-  class="screen"
->
+<section id="editorScreen" class="screen">
 
-
-<!-- ======================================================
-     TOP BAR
-====================================================== -->
+<!-- =====================================================
+     TOP HEADER
+===================================================== -->
 
 <header class="editorHeader">
 
-
-<button
-  id="editorBack"
-  class="iconBtn"
->
-  ‹
-</button>
-
+  <button
+    id="editorBack"
+    class="iconBtn"
+  >
+    ‹
+  </button>
 
 
-<div class="projectTitle">
+  <div class="projectTitle">
 
-<input
-  id="projectName"
-  value="新しいプロジェクト"
->
+    <input
+      id="projectName"
+      value="新しいプロジェクト"
+    >
 
-<small id="saveStatus">
-  保存済み
-</small>
+    <small id="saveStatus">
+      保存済み
+    </small>
 
-</div>
-
-
-
-<button
-  id="undoBtn"
-  class="iconBtn"
->
-  ↶
-</button>
+  </div>
 
 
-<button
-  id="redoBtn"
-  class="iconBtn"
->
-  ↷
-</button>
+  <button
+    id="undoBtn"
+    class="iconBtn"
+    title="元に戻す"
+  >
+    ↶
+  </button>
 
 
+  <button
+    id="redoBtn"
+    class="iconBtn"
+    title="やり直す"
+  >
+    ↷
+  </button>
 
-<button
-  id="exportBtn"
-  class="exportBtn"
->
-  保存
-</button>
 
+  <button
+    id="exportBtn"
+    class="exportBtn"
+  >
+    保存
+  </button>
 
 </header>
 
 
-
-<!-- ======================================================
+<!-- =====================================================
      EDITOR BODY
-====================================================== -->
+===================================================== -->
 
 <main class="editorBody">
 
 
-<!-- ======================================================
-     PREVIEW AREA
-====================================================== -->
+<!-- =====================================================
+     PREVIEW
+===================================================== -->
 
 <section class="previewArea">
 
-
 <div id="previewViewport">
 
+  <div id="canvas">
 
-<div id="canvas">
+    <!-- SAFE AREA -->
 
-
-<!-- CENTER GUIDES -->
-
-<div
-  id="guideX"
-  class="snapGuide vertical"
-></div>
-
-
-<div
-  id="guideY"
-  class="snapGuide horizontal"
-></div>
+    <div
+      id="safeArea"
+      class="safeArea"
+      hidden
+    ></div>
 
 
-<!-- OTHER SNAP GUIDES -->
+    <!-- SNAP GUIDES -->
 
-<div
-  id="guideLeft"
-  class="snapGuide vertical edgeGuide"
-></div>
+    <div
+      id="guideX"
+      class="snapGuide vertical"
+    ></div>
+
+    <div
+      id="guideY"
+      class="snapGuide horizontal"
+    ></div>
+
+    <div
+      id="guideLeft"
+      class="snapGuide vertical edgeGuide"
+    ></div>
+
+    <div
+      id="guideRight"
+      class="snapGuide vertical edgeGuide"
+    ></div>
+
+    <div
+      id="guideTop"
+      class="snapGuide horizontal edgeGuide"
+    ></div>
+
+    <div
+      id="guideBottom"
+      class="snapGuide horizontal edgeGuide"
+    ></div>
 
 
-<div
-  id="guideRight"
-  class="snapGuide vertical edgeGuide"
-></div>
+    <!-- DYNAMIC OBJECT GUIDES -->
 
+    <div
+      id="objectGuideX"
+      class="snapGuide vertical objectGuide"
+    ></div>
 
-<div
-  id="guideTop"
-  class="snapGuide horizontal edgeGuide"
-></div>
+    <div
+      id="objectGuideY"
+      class="snapGuide horizontal objectGuide"
+    ></div>
 
-
-<div
-  id="guideBottom"
-  class="snapGuide horizontal edgeGuide"
-></div>
-
+  </div>
 
 </div>
 
-</div>
 
-
-
-<!-- ======================================================
+<!-- =====================================================
      PREVIEW CONTROLS
-====================================================== -->
+===================================================== -->
 
 <div class="previewControls">
 
-
-<button
-  id="jumpStartBtn"
-  class="smallControl"
->
-  |‹
-</button>
-
-
-<button
-  id="playBtn"
-  class="playButton"
->
-  ▶
-</button>
+  <button
+    id="jumpStartBtn"
+    class="smallControl"
+  >
+    |‹
+  </button>
 
 
-<div
-  id="timeDisplay"
-  class="timeDisplay"
->
-  00:00.00 / 00:10.00
+  <button
+    id="previousKeyBtn"
+    class="smallControl"
+    title="前のキーフレーム"
+  >
+    ◇‹
+  </button>
+
+
+  <button
+    id="playBtn"
+    class="playButton"
+  >
+    ▶
+  </button>
+
+
+  <button
+    id="nextKeyBtn"
+    class="smallControl"
+    title="次のキーフレーム"
+  >
+    ›◇
+  </button>
+
+
+  <div
+    id="timeDisplay"
+    class="timeDisplay"
+  >
+    00:00.00 / 00:10.00
+  </div>
+
+
+  <button
+    id="fullscreenPreview"
+    class="smallControl"
+  >
+    ⛶
+  </button>
+
 </div>
-
-
-<button
-  id="fullscreenPreview"
-  class="smallControl"
->
-  ⛶
-</button>
-
-
-</div>
-
 
 </section>
 
 
-
-<!-- ======================================================
-     TIMELINE AREA
-====================================================== -->
+<!-- =====================================================
+     TIMELINE
+===================================================== -->
 
 <section
   id="timelineArea"
@@ -379,39 +343,49 @@
 
 <div class="timelineHeader">
 
+  <button
+    id="trackManagerBtn"
+    title="レイヤー"
+  >
+    ☷
+  </button>
 
-<button
-  id="timelineZoomOut"
->
-  −
-</button>
+
+  <button
+    id="timelineZoomOut"
+  >
+    −
+  </button>
 
 
-<div class="timelineTitle">
-  タイムライン
+  <div class="timelineTitle">
+    タイムライン
+  </div>
+
+
+  <button
+    id="timelineZoomIn"
+  >
+    ＋
+  </button>
+
+
+  <button
+    id="timelineFitBtn"
+    title="全体表示"
+  >
+    ↔
+  </button>
+
 </div>
 
 
-<button
-  id="timelineZoomIn"
->
-  ＋
-</button>
-
-
-</div>
-
-
-
-<!-- ======================================================
-     TIMELINE VIEWPORT
-====================================================== -->
+<!-- TIMELINE VIEWPORT -->
 
 <div
   id="timelineViewport"
   class="timelineViewport"
 >
-
 
 <div
   id="timelineContent"
@@ -419,171 +393,184 @@
 >
 
 
-<!-- LEFT SPACER -->
+  <!-- RULER -->
 
-<div
-  id="timelineLeftSpacer"
-  class="timelineSpacer"
-></div>
-
-
-
-<!-- ======================================================
-     TIME RULER
-====================================================== -->
-
-<div
-  id="timelineRuler"
-  class="timelineRuler"
-></div>
+  <div
+    id="timelineRuler"
+    class="timelineRuler"
+  ></div>
 
 
+  <!-- TRACKS -->
 
-<!-- ======================================================
-     TRACK CONTAINER
-====================================================== -->
-
-<div
-  id="trackContainer"
-  class="trackContainer"
->
+  <div
+    id="trackContainer"
+    class="trackContainer"
+  >
 
 
-<!-- OVERLAY TRACKS -->
+    <!-- OVERLAY DYNAMIC TRACKS -->
 
-<div
-  id="overlayTracks"
-  class="overlayTracks"
-></div>
+    <div
+      id="overlayTracks"
+      class="overlayTracks"
+    ></div>
 
 
+    <!-- MAIN VIDEO -->
 
-<!-- MAIN VIDEO TRACK -->
+    <div
+      id="mainTrack"
+      class="track mainTrack"
+    >
 
-<div
-  id="mainTrack"
-  class="track mainTrack"
->
+      <div class="trackLabel">
+        VIDEO
+      </div>
 
-<div class="trackLabel">
-  VIDEO
+      <div
+        id="mainTrackClips"
+        class="trackClips"
+      ></div>
+
+    </div>
+
+
+    <!-- TEXT -->
+
+    <div
+      id="textTrack"
+      class="track overlayTrack"
+    >
+
+      <div class="trackLabel">
+        TEXT
+      </div>
+
+      <div
+        id="textTrackClips"
+        class="trackClips"
+      ></div>
+
+    </div>
+
+
+    <!-- PIP -->
+
+    <div
+      id="pipTrack"
+      class="track overlayTrack"
+    >
+
+      <div class="trackLabel">
+        PIP
+      </div>
+
+      <div
+        id="pipTrackClips"
+        class="trackClips"
+      ></div>
+
+    </div>
+
+
+    <!-- STICKERS -->
+
+    <div
+      id="stickerTrack"
+      class="track overlayTrack"
+    >
+
+      <div class="trackLabel">
+        STICKER
+      </div>
+
+      <div
+        id="stickerTrackClips"
+        class="trackClips"
+      ></div>
+
+    </div>
+
+
+    <!-- MUSIC -->
+
+    <div
+      id="musicTrack"
+      class="track audioTrack"
+    >
+
+      <div class="trackLabel">
+        MUSIC
+      </div>
+
+      <div
+        id="musicTrackClips"
+        class="trackClips"
+      ></div>
+
+    </div>
+
+
+    <!-- SFX -->
+
+    <div
+      id="sfxTrack"
+      class="track audioTrack"
+    >
+
+      <div class="trackLabel">
+        SFX
+      </div>
+
+      <div
+        id="sfxTrackClips"
+        class="trackClips"
+      ></div>
+
+    </div>
+
+
+  </div>
+
 </div>
 
-<div
-  id="mainTrackClips"
-  class="trackClips"
-></div>
 
-</div>
-
-
-
-<!-- TEXT TRACK -->
-
-<div
-  id="textTrack"
-  class="track overlayTrack"
->
-
-<div class="trackLabel">
-  TEXT
-</div>
-
-<div
-  id="textTrackClips"
-  class="trackClips"
-></div>
-
-</div>
-
-
-
-<!-- PIP TRACK -->
-
-<div
-  id="pipTrack"
-  class="track overlayTrack"
->
-
-<div class="trackLabel">
-  PIP
-</div>
-
-<div
-  id="pipTrackClips"
-  class="trackClips"
-></div>
-
-</div>
-
-
-
-<!-- AUDIO TRACK -->
-
-<div
-  id="audioTrack"
-  class="track audioTrack"
->
-
-<div class="trackLabel">
-  AUDIO
-</div>
-
-<div
-  id="audioTrackClips"
-  class="trackClips"
-></div>
-
-</div>
-
-
-</div>
-
-
-
-<!-- RIGHT SPACER -->
-
-<div
-  id="timelineRightSpacer"
-  class="timelineSpacer"
-></div>
-
-
-</div>
-
-
-
-<!-- ======================================================
-     FIXED PLAYHEAD
-====================================================== -->
+<!-- FIXED CENTER PLAYHEAD -->
 
 <div
   id="fixedPlayhead"
   class="fixedPlayhead"
 >
 
-<div class="playheadHead">
-</div>
+  <div class="playheadHead"></div>
 
-<div class="playheadLine">
-</div>
+  <div class="playheadLine"></div>
 
 </div>
 
 
-</div>
+<!-- CURRENT KEYFRAME INDICATOR -->
 
+<button
+  id="floatingKeyframeBtn"
+  class="floatingKeyframeBtn"
+  title="キーフレーム"
+>
+  ◇
+</button>
+
+
+</div>
 
 </section>
-
 
 </main>
 
 
-
-<!-- ======================================================
-     MAIN TOOL BAR
-====================================================== -->
+<!-- =====================================================
+     MAIN TOOLBAR
+===================================================== -->
 
 <nav
   id="mainToolbar"
@@ -593,24 +580,21 @@
 
 <label class="toolButton">
 
-<div class="toolIcon">
-  ＋
-</div>
+  <div class="toolIcon">
+    ＋
+  </div>
 
-<span>
-  素材
-</span>
+  <span>素材</span>
 
-<input
-  id="addMainMedia"
-  type="file"
-  accept="video/*,image/*"
-  multiple
-  hidden
->
+  <input
+    id="addMainMedia"
+    type="file"
+    accept="video/*,image/*"
+    multiple
+    hidden
+  >
 
 </label>
-
 
 
 <button
@@ -618,16 +602,13 @@
   data-main-tool="canvas"
 >
 
-<div class="toolIcon">
-  ▣
-</div>
+  <div class="toolIcon">
+    ▣
+  </div>
 
-<span>
-  キャンバス
-</span>
+  <span>キャンバス</span>
 
 </button>
-
 
 
 <button
@@ -635,16 +616,27 @@
   data-main-tool="music"
 >
 
-<div class="toolIcon">
-  ♫
-</div>
+  <div class="toolIcon">
+    ♫
+  </div>
 
-<span>
-  音楽
-</span>
+  <span>音楽</span>
 
 </button>
 
+
+<button
+  class="toolButton"
+  data-main-tool="sfx"
+>
+
+  <div class="toolIcon">
+    ♪
+  </div>
+
+  <span>効果音</span>
+
+</button>
 
 
 <button
@@ -652,38 +644,32 @@
   data-main-tool="text"
 >
 
-<div class="toolIcon">
-  T
-</div>
+  <div class="toolIcon">
+    T
+  </div>
 
-<span>
-  テキスト
-</span>
+  <span>テキスト</span>
 
 </button>
 
 
-
 <label class="toolButton">
 
-<div class="toolIcon">
-  ◫
-</div>
+  <div class="toolIcon">
+    ◫
+  </div>
 
-<span>
-  PIP
-</span>
+  <span>PIP</span>
 
-<input
-  id="addPipMedia"
-  type="file"
-  accept="video/*,image/*"
-  multiple
-  hidden
->
+  <input
+    id="addPipMedia"
+    type="file"
+    accept="video/*,image/*"
+    multiple
+    hidden
+  >
 
 </label>
-
 
 
 <button
@@ -691,16 +677,13 @@
   data-main-tool="sticker"
 >
 
-<div class="toolIcon">
-  ☺
-</div>
+  <div class="toolIcon">
+    ☺
+  </div>
 
-<span>
-  ステッカー
-</span>
+  <span>ステッカー</span>
 
 </button>
-
 
 
 <button
@@ -708,24 +691,34 @@
   data-main-tool="background"
 >
 
-<div class="toolIcon">
-  ▧
-</div>
+  <div class="toolIcon">
+    ▧
+  </div>
 
-<span>
-  背景
-</span>
+  <span>背景</span>
 
 </button>
 
 
+<button
+  class="toolButton"
+  data-main-tool="safearea"
+>
+
+  <div class="toolIcon">
+    ⌗
+  </div>
+
+  <span>安全領域</span>
+
+</button>
+
 </nav>
 
 
-
-<!-- ======================================================
-     CLIP TOOL BAR
-====================================================== -->
+<!-- =====================================================
+     SELECTED CLIP TOOLBAR
+===================================================== -->
 
 <nav
   id="clipToolbar"
@@ -739,16 +732,13 @@
   data-clip-tool="done"
 >
 
-<div class="toolIcon">
-  ✓
-</div>
+  <div class="toolIcon">
+    ✓
+  </div>
 
-<span>
-  完了
-</span>
+  <span>完了</span>
 
 </button>
-
 
 
 <button
@@ -756,16 +746,13 @@
   data-clip-tool="split"
 >
 
-<div class="toolIcon">
-  ✂
-</div>
+  <div class="toolIcon">
+    ✂
+  </div>
 
-<span>
-  分割
-</span>
+  <span>分割</span>
 
 </button>
-
 
 
 <button
@@ -773,16 +760,13 @@
   data-clip-tool="trim"
 >
 
-<div class="toolIcon">
-  ↔
-</div>
+  <div class="toolIcon">
+    ↔
+  </div>
 
-<span>
-  トリミング
-</span>
+  <span>トリム</span>
 
 </button>
-
 
 
 <button
@@ -790,16 +774,13 @@
   data-clip-tool="speed"
 >
 
-<div class="toolIcon">
-  1×
-</div>
+  <div class="toolIcon">
+    1×
+  </div>
 
-<span>
-  速度
-</span>
+  <span>速度</span>
 
 </button>
-
 
 
 <button
@@ -807,16 +788,13 @@
   data-clip-tool="volume"
 >
 
-<div class="toolIcon">
-  🔊
-</div>
+  <div class="toolIcon">
+    🔊
+  </div>
 
-<span>
-  音量
-</span>
+  <span>音量</span>
 
 </button>
-
 
 
 <button
@@ -824,16 +802,13 @@
   data-clip-tool="animation"
 >
 
-<div class="toolIcon">
-  ✦
-</div>
+  <div class="toolIcon">
+    ✦
+  </div>
 
-<span>
-  アニメーション
-</span>
+  <span>アニメ</span>
 
 </button>
-
 
 
 <button
@@ -841,16 +816,27 @@
   data-clip-tool="keyframe"
 >
 
-<div class="toolIcon">
-  ◇
-</div>
+  <div class="toolIcon">
+    ◇
+  </div>
 
-<span>
-  キー
-</span>
+  <span>キー</span>
 
 </button>
 
+
+<button
+  class="toolButton"
+  data-clip-tool="keyframeEditor"
+>
+
+  <div class="toolIcon">
+    ◇⋯
+  </div>
+
+  <span>キー編集</span>
+
+</button>
 
 
 <button
@@ -858,16 +844,13 @@
   data-clip-tool="transform"
 >
 
-<div class="toolIcon">
-  ↗
-</div>
+  <div class="toolIcon">
+    ↗
+  </div>
 
-<span>
-  変形
-</span>
+  <span>変形</span>
 
 </button>
-
 
 
 <button
@@ -875,16 +858,13 @@
   data-clip-tool="crop"
 >
 
-<div class="toolIcon">
-  ⛶
-</div>
+  <div class="toolIcon">
+    ⛶
+  </div>
 
-<span>
-  クロップ
-</span>
+  <span>クロップ</span>
 
 </button>
-
 
 
 <button
@@ -892,16 +872,13 @@
   data-clip-tool="filter"
 >
 
-<div class="toolIcon">
-  ◐
-</div>
+  <div class="toolIcon">
+    ◐
+  </div>
 
-<span>
-  フィルター
-</span>
+  <span>調整</span>
 
 </button>
-
 
 
 <button
@@ -909,16 +886,41 @@
   data-clip-tool="layer"
 >
 
-<div class="toolIcon">
-  ☷
-</div>
+  <div class="toolIcon">
+    ☷
+  </div>
 
-<span>
-  レイヤー
-</span>
+  <span>レイヤー</span>
 
 </button>
 
+
+<button
+  class="toolButton"
+  data-clip-tool="lock"
+>
+
+  <div class="toolIcon">
+    🔒
+  </div>
+
+  <span>ロック</span>
+
+</button>
+
+
+<button
+  class="toolButton"
+  data-clip-tool="visibility"
+>
+
+  <div class="toolIcon">
+    ◉
+  </div>
+
+  <span>表示</span>
+
+</button>
 
 
 <button
@@ -926,16 +928,13 @@
   data-clip-tool="rotate"
 >
 
-<div class="toolIcon">
-  ↻
-</div>
+  <div class="toolIcon">
+    ↻
+  </div>
 
-<span>
-  回転
-</span>
+  <span>回転</span>
 
 </button>
-
 
 
 <button
@@ -943,16 +942,27 @@
   data-clip-tool="flip"
 >
 
-<div class="toolIcon">
-  ⇆
-</div>
+  <div class="toolIcon">
+    ⇆
+  </div>
 
-<span>
-  反転
-</span>
+  <span>反転</span>
 
 </button>
 
+
+<button
+  class="toolButton"
+  data-clip-tool="copy"
+>
+
+  <div class="toolIcon">
+    ⧉
+  </div>
+
+  <span>コピー</span>
+
+</button>
 
 
 <button
@@ -960,16 +970,13 @@
   data-clip-tool="duplicate"
 >
 
-<div class="toolIcon">
-  ▣
-</div>
+  <div class="toolIcon">
+    ▣
+  </div>
 
-<span>
-  複製
-</span>
+  <span>複製</span>
 
 </button>
-
 
 
 <button
@@ -977,27 +984,35 @@
   data-clip-tool="delete"
 >
 
-<div class="toolIcon">
-  ⌫
-</div>
+  <div class="toolIcon">
+    ⌫
+  </div>
 
-<span>
-  削除
-</span>
+  <span>削除</span>
 
 </button>
-
 
 </nav>
 
 
+<!-- =====================================================
+     QUICK PASTE
+===================================================== -->
+
+<button
+  id="pasteButton"
+  class="pasteButton"
+  hidden
+>
+  貼り付け
+</button>
+
 </section>
 
 
-
-<!-- ======================================================
-     BOTTOM EDIT SHEET
-====================================================== -->
+<!-- =====================================================
+     GENERIC BOTTOM SHEET
+===================================================== -->
 
 <section
   id="editSheet"
@@ -1005,54 +1020,41 @@
   hidden
 >
 
-
-<div class="sheetHandle">
-</div>
-
-
+<div class="sheetHandle"></div>
 
 <header class="sheetHeader">
 
+  <button
+    id="sheetCancel"
+    class="sheetHeaderButton"
+  >
+    ×
+  </button>
 
-<button
-  id="sheetCancel"
-  class="sheetHeaderButton"
->
-  ×
-</button>
+  <b id="sheetTitle">
+    編集
+  </b>
 
-
-<b id="sheetTitle">
-  編集
-</b>
-
-
-<button
-  id="sheetApply"
-  class="sheetHeaderButton apply"
->
-  ✓
-</button>
-
+  <button
+    id="sheetApply"
+    class="sheetHeaderButton apply"
+  >
+    ✓
+  </button>
 
 </header>
-
-
 
 <div
   id="sheetContent"
   class="sheetContent"
->
-</div>
-
+></div>
 
 </section>
 
 
-
-<!-- ======================================================
+<!-- =====================================================
      TEXT EDITOR
-====================================================== -->
+===================================================== -->
 
 <section
   id="textEditor"
@@ -1060,223 +1062,660 @@
   hidden
 >
 
-
 <header class="modalHeader">
 
+  <button id="textCancel">
+    ×
+  </button>
 
-<button id="textCancel">
-  ×
-</button>
+  <b>テキスト</b>
 
-
-<b>
-  テキスト
-</b>
-
-
-<button id="textApply">
-  ✓
-</button>
-
+  <button id="textApply">
+    ✓
+  </button>
 
 </header>
 
 
+<div class="textPreview">
+
+  <div id="textLivePreview">
+    TEXT
+  </div>
+
+</div>
+
 
 <div class="textInputArea">
-
 
 <textarea
   id="textInput"
   placeholder="テキストを入力"
 ></textarea>
 
-
 </div>
-
 
 
 <div class="textControls">
 
 
 <label>
+  サイズ
 
-サイズ
-
-<input
-  id="textSize"
-  type="range"
-  min="8"
-  max="160"
-  value="32"
->
-
+  <input
+    id="textSize"
+    type="range"
+    min="8"
+    max="180"
+    value="32"
+  >
 </label>
 
 
-
 <label>
+  文字色
 
-色
-
-<input
-  id="textColor"
-  type="color"
-  value="#ffffff"
->
-
+  <input
+    id="textColor"
+    type="color"
+    value="#ffffff"
+  >
 </label>
 
 
+<label>
+  縁取り
+
+  <input
+    id="textStroke"
+    type="range"
+    min="0"
+    max="12"
+    step=".5"
+    value="0"
+  >
+</label>
+
 
 <label>
+  縁取り色
 
-縁取り
+  <input
+    id="textStrokeColor"
+    type="color"
+    value="#000000"
+  >
+</label>
 
-<input
-  id="textStroke"
-  type="range"
-  min="0"
-  max="12"
-  value="0"
->
+
+<label>
+  影
+
+  <input
+    id="textShadow"
+    type="range"
+    min="0"
+    max="30"
+    value="0"
+  >
+</label>
+
+
+<label>
+  背景
+
+  <input
+    id="textBackground"
+    type="color"
+    value="#000000"
+  >
+</label>
+
+
+<label class="toggleLabel">
+
+  <span>背景を表示</span>
+
+  <input
+    id="textBackgroundEnabled"
+    type="checkbox"
+  >
 
 </label>
 
 
 </div>
-
 
 </section>
 
 
-
-<!-- ======================================================
+<!-- =====================================================
      ANIMATION PANEL
-====================================================== -->
+===================================================== -->
 
 <section
   id="animationPanel"
-  class="editSheet"
+  class="editSheet largeSheet"
   hidden
 >
 
-
-<div class="sheetHandle">
-</div>
-
+<div class="sheetHandle"></div>
 
 <header class="sheetHeader">
 
+  <button id="animationClose">
+    ×
+  </button>
 
-<button id="animationClose">
-  ×
-</button>
+  <b>
+    アニメーション
+  </b>
 
-
-<b>
-  アニメーション
-</b>
-
-
-<button id="animationApply">
-  ✓
-</button>
-
+  <button id="animationApply">
+    ✓
+  </button>
 
 </header>
 
 
-
 <div class="animationTabs">
 
+  <button
+    data-animation-tab="in"
+    class="active"
+  >
+    入る
+  </button>
 
-<button
-  data-animation-tab="in"
-  class="active"
->
-  入る
-</button>
+  <button data-animation-tab="out">
+    出る
+  </button>
 
+  <button data-animation-tab="loop">
+    ループ
+  </button>
 
-<button
-  data-animation-tab="out"
->
-  出る
-</button>
-
-
-<button
-  data-animation-tab="loop"
->
-  ループ
-</button>
-
-
-<button
-  data-animation-tab="pb"
->
-  PB
-</button>
-
+  <button data-animation-tab="pb">
+    PB
+  </button>
 
 </div>
-
 
 
 <div
   id="animationList"
   class="animationList"
->
-</div>
-
+></div>
 
 
 <div class="animationSettings">
 
-
 <label>
 
-時間
+  時間
 
-<input
-  id="animationDuration"
-  type="range"
-  min=".1"
-  max="5"
-  value=".5"
-  step=".1"
->
+  <div class="rangeWithValue">
+
+    <input
+      id="animationDuration"
+      type="range"
+      min=".1"
+      max="5"
+      value=".5"
+      step=".1"
+    >
+
+    <span id="animationDurationValue">
+      0.5秒
+    </span>
+
+  </div>
 
 </label>
 
 
-
 <label>
 
-強さ
+  強さ
 
-<input
-  id="animationStrength"
-  type="range"
-  min="0"
-  max="200"
-  value="100"
->
+  <div class="rangeWithValue">
+
+    <input
+      id="animationStrength"
+      type="range"
+      min="0"
+      max="200"
+      value="100"
+    >
+
+    <span id="animationStrengthValue">
+      100%
+    </span>
+
+  </div>
 
 </label>
 
+
+<label>
+
+  回数
+
+  <div class="rangeWithValue">
+
+    <input
+      id="animationCount"
+      type="range"
+      min="1"
+      max="10"
+      value="1"
+    >
+
+    <span id="animationCountValue">
+      1
+    </span>
+
+  </div>
+
+</label>
 
 </div>
-
 
 </section>
 
 
+<!-- =====================================================
+     KEYFRAME EDITOR
+===================================================== -->
 
-<!-- ======================================================
+<section
+  id="keyframePanel"
+  class="editSheet"
+  hidden
+>
+
+<div class="sheetHandle"></div>
+
+<header class="sheetHeader">
+
+  <button id="keyframeClose">
+    ×
+  </button>
+
+  <b>
+    キーフレーム
+  </b>
+
+  <button id="keyframeDone">
+    ✓
+  </button>
+
+</header>
+
+
+<div class="keyframeActions">
+
+  <button id="keyPrevious">
+    ‹ 前
+  </button>
+
+  <button id="keyAdd">
+    ◇ 追加
+  </button>
+
+  <button id="keyNext">
+    次 ›
+  </button>
+
+</div>
+
+
+<div class="keyframeActions">
+
+  <button
+    id="keyDelete"
+    class="dangerButton"
+  >
+    現在のキーを削除
+  </button>
+
+</div>
+
+
+<div class="propertyGrid">
+
+<label class="propertyWide">
+
+  イージング
+
+  <select id="keyframeEasing">
+
+    <option value="linear">
+      Linear
+    </option>
+
+    <option value="easeIn">
+      Ease In
+    </option>
+
+    <option value="easeOut">
+      Ease Out
+    </option>
+
+    <option value="easeInOut">
+      Ease In-Out
+    </option>
+
+    <option value="back">
+      Back
+    </option>
+
+    <option value="bounce">
+      Bounce
+    </option>
+
+    <option value="elastic">
+      Elastic
+    </option>
+
+    <option value="spring">
+      Spring
+    </option>
+
+  </select>
+
+</label>
+
+</div>
+
+
+<div class="easingPreview">
+
+  <canvas
+    id="easingCanvas"
+    width="500"
+    height="180"
+  ></canvas>
+
+</div>
+
+</section>
+
+
+<!-- =====================================================
+     CROP EDITOR
+===================================================== -->
+
+<section
+  id="cropEditor"
+  class="modalEditor"
+  hidden
+>
+
+<header class="modalHeader">
+
+  <button id="cropCancel">
+    ×
+  </button>
+
+  <b>
+    クロップ
+  </b>
+
+  <button id="cropApply">
+    ✓
+  </button>
+
+</header>
+
+
+<div class="cropWorkspace">
+
+  <div id="cropStage">
+
+    <div id="cropMedia"></div>
+
+    <div id="cropShadeTop"></div>
+    <div id="cropShadeLeft"></div>
+    <div id="cropShadeRight"></div>
+    <div id="cropShadeBottom"></div>
+
+    <div id="cropBox">
+
+      <i
+        class="cropHandle nw"
+        data-crop-handle="nw"
+      ></i>
+
+      <i
+        class="cropHandle ne"
+        data-crop-handle="ne"
+      ></i>
+
+      <i
+        class="cropHandle sw"
+        data-crop-handle="sw"
+      ></i>
+
+      <i
+        class="cropHandle se"
+        data-crop-handle="se"
+      ></i>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<div class="cropToolbar">
+
+  <button data-crop-ratio="free">
+    自由
+  </button>
+
+  <button data-crop-ratio="1:1">
+    1:1
+  </button>
+
+  <button data-crop-ratio="4:3">
+    4:3
+  </button>
+
+  <button data-crop-ratio="16:9">
+    16:9
+  </button>
+
+  <button data-crop-ratio="9:16">
+    9:16
+  </button>
+
+  <button id="cropReset">
+    リセット
+  </button>
+
+</div>
+
+</section>
+
+
+<!-- =====================================================
+     AUDIO PICKER
+===================================================== -->
+
+<section
+  id="audioPanel"
+  class="editSheet"
+  hidden
+>
+
+<div class="sheetHandle"></div>
+
+<header class="sheetHeader">
+
+  <button id="audioClose">
+    ×
+  </button>
+
+  <b id="audioPanelTitle">
+    音楽
+  </b>
+
+  <button id="audioDone">
+    ✓
+  </button>
+
+</header>
+
+
+<div class="audioImport">
+
+<label class="bigImportButton">
+
+  ＋ ファイルから追加
+
+  <input
+    id="audioFileInput"
+    type="file"
+    accept="audio/*,video/*"
+    hidden
+  >
+
+</label>
+
+</div>
+
+
+<div class="audioPresetTitle">
+  PB Editor
+</div>
+
+
+<div
+  id="audioPresetList"
+  class="audioPresetList"
+>
+
+  <button data-audio-preset="pop">
+    ✦
+    <span>登場</span>
+  </button>
+
+  <button data-audio-preset="move">
+    ➜
+    <span>移動</span>
+  </button>
+
+  <button data-audio-preset="hit">
+    ✹
+    <span>衝突</span>
+  </button>
+
+  <button data-audio-preset="angry">
+    〰
+    <span>怒り</span>
+  </button>
+
+  <button data-audio-preset="boom">
+    💥
+    <span>爆発</span>
+  </button>
+
+</div>
+
+</section>
+
+
+<!-- =====================================================
+     STICKER PANEL
+===================================================== -->
+
+<section
+  id="stickerPanel"
+  class="editSheet"
+  hidden
+>
+
+<div class="sheetHandle"></div>
+
+<header class="sheetHeader">
+
+  <button id="stickerClose">
+    ×
+  </button>
+
+  <b>
+    ステッカー
+  </b>
+
+  <button id="stickerDone">
+    ✓
+  </button>
+
+</header>
+
+
+<div class="stickerGrid">
+
+  <button data-sticker="💥">💥</button>
+  <button data-sticker="💢">💢</button>
+  <button data-sticker="💧">💧</button>
+  <button data-sticker="❗">❗</button>
+  <button data-sticker="❓">❓</button>
+  <button data-sticker="⚡">⚡</button>
+  <button data-sticker="🔥">🔥</button>
+  <button data-sticker="✨">✨</button>
+  <button data-sticker="⭐">⭐</button>
+  <button data-sticker="💫">💫</button>
+  <button data-sticker="☁️">☁️</button>
+  <button data-sticker="💨">💨</button>
+
+</div>
+
+</section>
+
+
+<!-- =====================================================
+     TRACK MANAGER
+===================================================== -->
+
+<section
+  id="trackManager"
+  class="editSheet"
+  hidden
+>
+
+<div class="sheetHandle"></div>
+
+<header class="sheetHeader">
+
+  <button id="trackManagerClose">
+    ×
+  </button>
+
+  <b>
+    レイヤー
+  </b>
+
+  <button id="trackManagerDone">
+    ✓
+  </button>
+
+</header>
+
+
+<div
+  id="trackManagerList"
+  class="trackManagerList"
+></div>
+
+</section>
+
+
+<!-- =====================================================
      CONTEXT MENU
-====================================================== -->
+===================================================== -->
 
 <div
   id="contextMenu"
@@ -1284,21 +1723,33 @@
   hidden
 >
 
+<button data-context="edit">
+  編集
+</button>
+
+<button data-context="copy">
+  コピー
+</button>
 
 <button data-context="duplicate">
   複製
 </button>
 
-
 <button data-context="front">
   最前面
 </button>
-
 
 <button data-context="back">
   最背面
 </button>
 
+<button data-context="lock">
+  ロック
+</button>
+
+<button data-context="visibility">
+  非表示
+</button>
 
 <button
   data-context="delete"
@@ -1307,14 +1758,12 @@
   削除
 </button>
 
-
 </div>
 
 
-
-<!-- ======================================================
+<!-- =====================================================
      TOAST
-====================================================== -->
+===================================================== -->
 
 <div
   id="toast"
@@ -1322,19 +1771,9 @@
 ></div>
 
 
-
-<!-- ======================================================
-     HIDDEN VIDEO FOR THUMBNAILS
-====================================================== -->
-
-<video
-  id="thumbnailVideo"
-  muted
-  playsinline
-  preload="metadata"
-  hidden
-></video>
-
+<!-- =====================================================
+     HIDDEN WORKSPACE
+===================================================== -->
 
 <canvas
   id="thumbnailCanvas"
@@ -1344,10 +1783,22 @@
 ></canvas>
 
 
+<canvas
+  id="waveformCanvas"
+  width="1000"
+  height="100"
+  hidden
+></canvas>
+
+
+<audio
+  id="audioPreview"
+  preload="auto"
+  hidden
+></audio>
+
 
 <script src="app.js"></script>
 
-
 </body>
-
 </html>
