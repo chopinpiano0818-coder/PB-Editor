@@ -1,8 +1,3 @@
-/* =========================================================
-   PB EDITOR v1.1
-   HOME + EDITOR UI
-========================================================= */
-
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
@@ -10,44 +5,34 @@
 
 :root {
   --bg: #0b0d11;
-  --panel: #12151a;
-  --panel2: #191d24;
-  --panel3: #242a33;
-  --line: #2b3038;
-
-  --text: #f7f7f8;
-  --subtext: #929aa6;
-
-  --accent: #ef5267;
-  --danger: #ff5b68;
-
-  --radius: 12px;
+  --p: #15181e;
+  --p2: #222730;
+  --line: #2c313a;
+  --txt: #f7f7f8;
+  --sub: #929aa6;
+  --a: #ef5267;
 }
 
 html,
 body {
+  margin: 0;
   width: 100%;
   height: 100%;
-  margin: 0;
-
   overflow: hidden;
 
   background: var(--bg);
-  color: var(--text);
+  color: var(--txt);
 
   font-family:
     -apple-system,
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
-
-  overscroll-behavior: none;
 }
 
 button,
 input,
-select,
-textarea {
+label {
   font: inherit;
 }
 
@@ -57,20 +42,13 @@ button {
   background: transparent;
 }
 
-button,
-label {
-  -webkit-user-select: none;
-  user-select: none;
-}
 
-
-/* =========================================================
-   SCREENS
-========================================================= */
+/* =====================================================
+   SCREEN
+===================================================== */
 
 .screen {
   position: absolute;
-
   inset: 0;
 
   display: none;
@@ -84,108 +62,105 @@ label {
 }
 
 
-/* =========================================================
-   HOME HEADER
-========================================================= */
+/* =====================================================
+   HOME HEADER / EDITOR HEADER
+===================================================== */
 
-.homeHeader {
-  flex: 0 0 auto;
-
+.homeHead,
+.editHead {
   display: flex;
   align-items: center;
 
-  padding:
-    calc(12px + env(safe-area-inset-top))
-    18px
-    12px;
+  gap: 7px;
 
-  background: #101318;
+  background: #11141a;
 
   border-bottom:
     1px solid var(--line);
-}
-
-.homeHeader > div:first-child {
-  flex: 1;
-}
-
-.homeHeader h1 {
-  margin: 0;
-
-  font-size: 23px;
-
-  letter-spacing: -0.5px;
-}
-
-.homeHeader small {
-  display: block;
-
-  margin-top: 2px;
-
-  font-size: 10px;
-
-  color: var(--subtext);
-}
-
-.circleButton {
-  width: 40px;
-  height: 40px;
-
-  display: grid;
-  place-items: center;
-
-  border-radius: 50%;
-
-  background: #222730;
-
-  font-size: 19px;
-}
-
-
-/* =========================================================
-   HOME CONTENT
-========================================================= */
-
-.homeContent {
-  flex: 1;
-
-  overflow-y: auto;
 
   padding:
-    20px
-    18px
-    calc(30px + env(safe-area-inset-bottom));
+    calc(8px + env(safe-area-inset-top))
+    12px
+    8px;
 }
 
-.homeContent h2 {
-  margin:
-    0
-    0
-    12px;
 
+/* =====================================================
+   HOME HEADER
+===================================================== */
+
+.homeHead div {
+  flex: 1;
+}
+
+.homeHead h1 {
+  font-size: 24px;
+  margin: 0;
+}
+
+.homeHead small,
+.title small {
+  color: var(--sub);
+  font-size: 9px;
+}
+
+.homeHead button,
+.editHead > button {
+  height: 38px;
+  min-width: 38px;
+
+  border-radius: 9px;
+
+  background: var(--p2);
+}
+
+
+/* =====================================================
+   HOME MAIN
+===================================================== */
+
+.homeMain {
+  flex: 1;
+
+  overflow: auto;
+
+  padding: 20px;
+
+  max-width: 950px;
+  width: 100%;
+
+  margin: auto;
+}
+
+.homeMain h2 {
   font-size: 16px;
 }
 
 
-/* =========================================================
+/* =====================================================
    CREATE PROJECT
-========================================================= */
+===================================================== */
 
-.createArea {
-  margin-bottom: 30px;
-}
-
-.createCards {
+.create {
   display: grid;
 
   grid-template-columns:
-    repeat(3, minmax(0, 1fr));
+    1fr 1fr;
 
-  gap: 10px;
+  gap: 12px;
+
+  margin-bottom: 28px;
 }
 
-.createCard {
-  min-height: 128px;
+.new {
+  min-height: 120px;
+
+  border-radius: 16px;
+
+  background: #1b2028;
+
+  border:
+    1px solid #303641;
 
   display: flex;
 
@@ -196,389 +171,205 @@ label {
 
   gap: 7px;
 
-  padding: 14px 8px;
+  font-size: 25px;
 
-  border-radius: 15px;
+  user-select: none;
+}
 
+.new.primary {
   background:
     linear-gradient(
       145deg,
-      #20252d,
-      #181c22
+      #f05b71,
+      #c93d53
     );
-
-  border:
-    1px solid #2d333d;
-
-  box-shadow:
-    0 6px 16px #0003;
 }
 
-.createCard.primary {
-  background:
-    linear-gradient(
-      145deg,
-      #ed5369,
-      #c83e54
-    );
-
-  border-color:
-    transparent;
-}
-
-.createCard:active {
-  transform:
-    scale(0.97);
-}
-
-.createIcon {
-  width: 46px;
-  height: 46px;
-
-  display: grid;
-  place-items: center;
-
-  border-radius: 13px;
-
-  background: #ffffff18;
-
-  font-size: 24px;
-}
-
-.createCard b {
+.new b {
   font-size: 14px;
 }
 
-.createCard span {
+.new span {
   font-size: 9px;
-
-  color: #bbc1c9;
-
-  text-align: center;
+  color: #ddd;
 }
 
-.createCard.primary span {
-  color: #ffeef1;
+.new:active {
+  transform: scale(.98);
 }
 
 
-/* =========================================================
-   PROJECT AREA
-========================================================= */
+/* =====================================================
+   PROJECT SECTION
+===================================================== */
 
 .sectionTitle {
   display: flex;
-
   align-items: center;
-
-  margin-bottom: 10px;
 }
 
 .sectionTitle h2 {
   flex: 1;
-
-  margin: 0;
 }
 
-.sectionTitle button {
-  padding: 7px 10px;
-
-  border-radius: 8px;
-
-  color: #b6bdc7;
-
-  background: #20242b;
-
-  font-size: 11px;
+.sectionTitle span {
+  font-size: 9px;
+  color: var(--sub);
 }
 
 
-/* =========================================================
-   EMPTY PROJECT LIST
-========================================================= */
+/* =====================================================
+   PROJECT GRID
+===================================================== */
 
-.emptyProjects {
-  min-height: 180px;
-
-  display: flex;
-
-  flex-direction: column;
-
-  align-items: center;
-  justify-content: center;
-
-  gap: 7px;
-
-  padding: 20px;
-
-  border:
-    1px dashed #303640;
-
-  border-radius: 14px;
-
-  color: var(--subtext);
-}
-
-.emptyIcon {
-  font-size: 38px;
-
-  margin-bottom: 5px;
-}
-
-.emptyProjects b {
-  color: #d9dce1;
-
-  font-size: 13px;
-}
-
-.emptyProjects span {
-  font-size: 10px;
-
-  text-align: center;
-}
-
-
-/* =========================================================
-   PROJECT CARDS
-========================================================= */
-
-#projectList {
+.projects {
   display: grid;
 
   grid-template-columns:
-    repeat(2, minmax(0, 1fr));
+    repeat(
+      3,
+      minmax(0, 1fr)
+    );
 
   gap: 12px;
 }
 
-.projectCard {
-  position: relative;
-
+.project {
   overflow: hidden;
+
+  border:
+    1px solid #2c323c;
 
   border-radius: 12px;
 
   background: #181c22;
-
-  border:
-    1px solid #292f38;
 }
 
-.projectThumb {
-  position: relative;
+.project:active {
+  transform: scale(.985);
+}
 
+
+/* =====================================================
+   PROJECT THUMBNAIL
+===================================================== */
+
+.thumb {
   aspect-ratio: 16 / 9;
 
+  background: #222832;
+
   display: grid;
+
   place-items: center;
 
-  overflow: hidden;
+  font-size: 30px;
 
-  background:
-    linear-gradient(
-      145deg,
-      #272d36,
-      #15181d
-    );
+  overflow: hidden;
 }
 
-.projectThumb img,
-.projectThumb video {
+.thumb img,
+.thumb video {
   width: 100%;
   height: 100%;
 
   object-fit: cover;
 }
 
-.projectThumbIcon {
-  font-size: 28px;
 
-  opacity: 0.6;
-}
+/* =====================================================
+   PROJECT INFO
+===================================================== */
 
-.projectDuration {
-  position: absolute;
-
-  right: 5px;
-  bottom: 5px;
-
-  padding: 2px 5px;
-
-  border-radius: 4px;
-
-  background: #000b;
-
-  font-size: 8px;
-}
-
-.projectInfo {
-  display: flex;
-
-  align-items: center;
-
-  gap: 6px;
-
+.pinfo {
   padding: 9px;
 }
 
-.projectInfoText {
-  flex: 1;
-
-  min-width: 0;
-}
-
-.projectInfo b {
+.pinfo b {
   display: block;
 
-  overflow: hidden;
-
   white-space: nowrap;
-
+  overflow: hidden;
   text-overflow: ellipsis;
 
   font-size: 11px;
 }
 
-.projectInfo small {
-  display: block;
-
-  margin-top: 3px;
-
-  color: var(--subtext);
-
+.pinfo small {
   font-size: 8px;
-}
-
-.projectMore {
-  width: 28px;
-  height: 28px;
-
-  display: grid;
-  place-items: center;
-
-  border-radius: 50%;
-
-  font-size: 18px;
-}
-
-.projectMore:active {
-  background: #ffffff14;
+  color: var(--sub);
 }
 
 
-/* =========================================================
+/* =====================================================
+   EMPTY HOME
+===================================================== */
+
+.empty {
+  grid-column: 1 / -1;
+
+  padding: 50px;
+
+  text-align: center;
+
+  border:
+    1px dashed #333a44;
+
+  border-radius: 14px;
+
+  color: var(--sub);
+}
+
+
+/* =====================================================
    EDITOR HEADER
-========================================================= */
+===================================================== */
 
-.editorHeader {
-  flex: 0 0 auto;
-
+.editHead {
   height:
     calc(
-      52px +
+      54px +
       env(safe-area-inset-top)
     );
 
-  display: flex;
-
   align-items: flex-end;
-
-  gap: 7px;
-
-  padding:
-    env(safe-area-inset-top)
-    8px
-    6px;
-
-  background: #12151a;
-
-  border-bottom:
-    1px solid var(--line);
 }
 
-.headerButton {
-  width: 38px;
-  height: 38px;
-
-  display: grid;
-  place-items: center;
-
-  border-radius: 9px;
-
-  background: #222730;
-
-  font-size: 19px;
-}
-
-.projectTitle {
+.title {
   flex: 1;
 
   min-width: 0;
 
   display: flex;
-
   flex-direction: column;
 }
 
-.projectTitle input {
-  width: 100%;
-
+.title input {
   border: 0;
+  background: transparent;
+
+  color: #fff;
+
+  font-weight: 700;
 
   outline: 0;
 
-  padding: 0;
-
-  background: transparent;
-
-  color: white;
-
-  font-weight: 650;
-
-  font-size: 13px;
+  min-width: 0;
 }
 
-.projectTitle small {
-  margin-top: 2px;
+.editHead .export {
+  background: var(--a);
 
-  color: #828a95;
-
-  font-size: 8px;
-}
-
-.headerActions {
-  display: flex;
-
-  align-items: center;
-
-  gap: 4px;
-}
-
-.exportButton {
-  height: 38px;
-
-  padding: 0 12px;
-
-  border-radius: 9px;
-
-  background:
-    linear-gradient(
-      135deg,
-      #f15a70,
-      #dc4057
-    );
-
-  font-size: 11px;
-
-  font-weight: 650;
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
 
-/* =========================================================
-   EDITOR MAIN
-========================================================= */
+/* =====================================================
+   WORKSPACE
+===================================================== */
 
-#editorMain {
+.workspace {
   flex: 1;
 
   min-height: 0;
@@ -589,9 +380,9 @@ label {
 }
 
 
-/* =========================================================
+/* =====================================================
    PREVIEW
-========================================================= */
+===================================================== */
 
 .preview {
   flex: 1;
@@ -603,6 +394,7 @@ label {
   flex-direction: column;
 }
 
+.viewer,
 #viewer {
   flex: 1;
 
@@ -612,22 +404,22 @@ label {
 
   place-items: center;
 
-  overflow: hidden;
-
-  padding: 9px;
-
   background:
     radial-gradient(
-      circle at center,
-      #171a20,
+      circle,
+      #181c22,
       #07080a 70%
     );
+
+  padding: 8px;
+
+  overflow: hidden;
 }
 
 
-/* =========================================================
+/* =====================================================
    STAGE
-========================================================= */
+===================================================== */
 
 #stage {
   position: relative;
@@ -640,21 +432,20 @@ label {
 
   aspect-ratio: 9 / 16;
 
-  overflow: hidden;
-
   background: #111;
+
+  overflow: hidden;
 
   touch-action: none;
 
   box-shadow:
-    0 0 0 1px #31363e,
-    0 10px 30px #0007;
+    0 0 0 1px #353b45;
 }
 
 
-/* =========================================================
-   MEDIA LAYERS
-========================================================= */
+/* =====================================================
+   LAYERS
+===================================================== */
 
 .layer {
   position: absolute;
@@ -670,7 +461,8 @@ label {
 
   will-change:
     transform,
-    opacity;
+    opacity,
+    filter;
 }
 
 .layer img,
@@ -680,22 +472,32 @@ label {
   width: 100%;
   height: 100%;
 
-  object-fit: cover;
+  object-fit: contain;
 
   pointer-events: none;
 }
+
+
+/* =====================================================
+   TEXT LAYER
+===================================================== */
 
 .layer.text {
   display: grid;
 
   place-items: center;
 
-  white-space: nowrap;
-
-  font-weight: 700;
+  white-space: pre-wrap;
 
   text-align: center;
+
+  font-weight: 700;
 }
+
+
+/* =====================================================
+   SELECTED LAYER
+===================================================== */
 
 .layer.selected {
   outline:
@@ -704,368 +506,306 @@ label {
   outline-offset: 2px;
 }
 
-.layer.selected::after {
-  content: "";
 
-  position: absolute;
-
-  right: -9px;
-  bottom: -9px;
-
-  width: 15px;
-  height: 15px;
-
-  border-radius: 50%;
-
-  background: white;
-
-  border:
-    2px solid var(--accent);
-
-  box-shadow:
-    0 2px 6px #0008;
-}
-
-
-/* =========================================================
+/* =====================================================
    SNAP GUIDES
-========================================================= */
+===================================================== */
 
 .guide {
   position: absolute;
 
-  z-index: 9999;
+  z-index: 999;
 
   display: none;
 
+  background: #ff4765;
+
   pointer-events: none;
-
-  background: #ff4263;
-}
-
-.guide.vertical {
-  width: 1px;
-
-  top: 0;
-  bottom: 0;
-
-  left: 50%;
-}
-
-.guide.horizontal {
-  height: 1px;
-
-  left: 0;
-  right: 0;
-
-  top: 50%;
 }
 
 .guide.show {
   display: block;
 }
 
+.guide.v {
+  top: 0;
+  bottom: 0;
 
-/* =========================================================
+  left: 50%;
+
+  width: 1px;
+}
+
+.guide.h {
+  left: 0;
+  right: 0;
+
+  top: 50%;
+
+  height: 1px;
+}
+
+
+/* =====================================================
    TRANSPORT
-========================================================= */
+===================================================== */
 
 .transport {
-  flex: 0 0 42px;
+  height: 42px;
 
   display: flex;
 
   align-items: center;
+  justify-content: center;
 
-  gap: 7px;
-
-  padding: 4px 8px;
+  gap: 14px;
 
   background: #14171c;
-
-  border-top:
-    1px solid #252a31;
 }
 
 .transport button {
-  width: 31px;
-  height: 31px;
-
-  display: grid;
-  place-items: center;
+  width: 32px;
+  height: 32px;
 
   border-radius: 50%;
 
-  background: #242a32;
+  background: #262c35;
 }
 
 .transport span {
   font-size: 9px;
 
-  white-space: nowrap;
-
   font-variant-numeric:
     tabular-nums;
 }
 
-.transport input {
-  flex: 1;
 
-  min-width: 0;
-
-  accent-color: var(--accent);
-}
-
-
-/* =========================================================
+/* =====================================================
    TIMELINE
-========================================================= */
+===================================================== */
 
-.timelineArea {
-  flex: 0 0 170px;
+.timeline {
+  height: 190px;
 
-  min-height: 0;
+  background: #0f1217;
+
+  border-top:
+    1px solid var(--line);
 
   display: flex;
 
   flex-direction: column;
-
-  background: #0e1115;
-
-  border-top:
-    1px solid #282d35;
 }
 
-.timelineHeader {
-  flex: 0 0 29px;
+.tlTop {
+  height: 28px;
 
   display: flex;
 
   align-items: center;
-
   justify-content: center;
 
-  gap: 15px;
-
-  color: #929aa6;
+  gap: 16px;
 
   font-size: 9px;
+
+  color: var(--sub);
 }
 
-.timelineHeader button {
-  width: 25px;
-  height: 22px;
+.tlTop button {
+  background: #262c34;
 
   border-radius: 5px;
 
-  background: #242931;
-
-  font-size: 15px;
+  width: 25px;
 }
 
-.timelineScroll {
+
+/* =====================================================
+   TIMELINE SCROLL
+===================================================== */
+
+.tlScroll {
   flex: 1;
 
-  position: relative;
-
-  overflow-x: auto;
-  overflow-y: auto;
+  overflow: auto;
 
   scrollbar-width: none;
 
   touch-action: pan-x pan-y;
 }
 
-.timelineScroll::-webkit-scrollbar {
+.tlScroll::-webkit-scrollbar {
   display: none;
 }
 
-#timelineContent {
+#tlContent {
   position: relative;
 
-  min-width: 100%;
-
-  width: 900px;
+  min-height: 100%;
 
   padding:
-    20px
-    20px
+    22px
+    0
     15px;
 }
 
 
-/* =========================================================
-   RULER
-========================================================= */
+/* =====================================================
+   TIMELINE RULER
+===================================================== */
 
 #ruler {
   position: absolute;
 
+  left: 0;
+  right: 0;
   top: 0;
-  left: 20px;
-  right: 20px;
 
-  height: 19px;
+  height: 20px;
 
   border-bottom:
-    1px solid #2c3139;
+    1px solid #343a43;
 
   background:
     repeating-linear-gradient(
       to right,
       transparent 0,
       transparent 49px,
-      #444b55 50px
+      #4a515c 50px
     );
 }
 
 
-/* =========================================================
+/* =====================================================
    PLAYHEAD
-========================================================= */
+===================================================== */
 
 #playhead {
   position: absolute;
 
-  z-index: 100;
-
   top: 15px;
   bottom: 0;
-
-  left: 50%;
 
   width: 1px;
 
   background: #fff;
 
+  z-index: 100;
+
   pointer-events: none;
 }
 
-.playheadHead {
+#playhead i {
   position: absolute;
 
-  top: -5px;
+  top: -4px;
   left: -5px;
 
   width: 11px;
   height: 11px;
 
-  border-radius: 3px;
-
   background: #fff;
+
+  border-radius: 3px;
 }
 
 
-/* =========================================================
-   TRACKS
-========================================================= */
-
-#tracks {
-  position: relative;
-
-  padding-top: 4px;
-}
+/* =====================================================
+   TRACK
+===================================================== */
 
 .track {
   position: relative;
 
-  height: 36px;
+  height: 38px;
 
-  margin-bottom: 5px;
-
-  border-radius: 5px;
+  margin:
+    5px
+    0;
 
   background: #181c22;
 }
 
+
+/* =====================================================
+   CLIP
+===================================================== */
+
 .clip {
   position: absolute;
 
-  top: 0;
-
   height: 100%;
 
+  border:
+    1px solid #66707e;
+
+  border-radius: 5px;
+
+  background: #37404d;
+
   overflow: hidden;
+
+  font-size: 9px;
 
   display: flex;
 
   align-items: center;
 
-  padding: 0 9px;
-
-  border-radius: 5px;
-
-  border:
-    1px solid #59616d;
-
-  background:
-    linear-gradient(
-      180deg,
-      #3c4451,
-      #303743
-    );
-
-  color: white;
-
-  font-size: 9px;
+  padding:
+    0
+    10px;
 
   white-space: nowrap;
-
-  text-overflow: ellipsis;
 }
 
 .clip.video {
-  background:
-    linear-gradient(
-      180deg,
-      #3b4d57,
-      #2f3d45
-    );
-}
-
-.clip.image {
-  background:
-    linear-gradient(
-      180deg,
-      #424958,
-      #343b48
-    );
+  background: #334852;
 }
 
 .clip.text {
-  background:
-    linear-gradient(
-      180deg,
-      #59496a,
-      #463a55
-    );
-}
-
-.clip.audio {
-  background:
-    linear-gradient(
-      180deg,
-      #395846,
-      #2c4738
-    );
+  background: #4d405c;
 }
 
 .clip.selected {
   border:
-    2px solid var(--accent);
-
-  box-shadow:
-    0 0 0 1px #000;
+    2px solid var(--a);
 }
 
 
-/* =========================================================
-   BOTTOM TOOLBARS
-========================================================= */
+/* =====================================================
+   TRIM HANDLES
+===================================================== */
 
-.bottomToolbar {
-  flex: 0 0 auto;
+.trimHandle {
+  position: absolute;
 
+  top: 0;
+  bottom: 0;
+
+  width: 12px;
+
+  background: #ffffffcc;
+
+  z-index: 2;
+
+  touch-action: none;
+}
+
+.trimHandle.l {
+  left: 0;
+}
+
+.trimHandle.r {
+  right: 0;
+}
+
+
+/* =====================================================
+   TOOLBARS
+===================================================== */
+
+.bar {
   height:
     calc(
       68px +
@@ -1076,31 +816,32 @@ label {
 
   align-items: flex-start;
 
-  gap: 2px;
-
   overflow-x: auto;
+
+  background: #15181e;
+
+  border-top:
+    1px solid var(--line);
 
   padding:
     4px
     4px
     env(safe-area-inset-bottom);
 
-  background: #15181e;
-
-  border-top:
-    1px solid #292e36;
-
   scrollbar-width: none;
 }
 
-.bottomToolbar::-webkit-scrollbar {
+.bar::-webkit-scrollbar {
   display: none;
 }
 
-.toolButton {
-  flex: 0 0 66px;
+.bar > * {
+  flex:
+    0
+    0
+    67px;
 
-  height: 60px;
+  height: 58px;
 
   display: flex;
 
@@ -1109,41 +850,33 @@ label {
   align-items: center;
   justify-content: center;
 
-  gap: 3px;
+  gap: 4px;
 
   border-radius: 8px;
 
-  color: #f4f5f7;
-}
-
-.toolButton:active {
-  background: #292e36;
-}
-
-.toolIcon {
-  min-height: 25px;
-
-  display: grid;
-
-  place-items: center;
-
   font-size: 20px;
+
+  user-select: none;
 }
 
-.toolButton span {
+.bar > *:active {
+  background: #272c35;
+}
+
+.bar span {
   font-size: 9px;
 }
 
-.toolButton.danger {
-  color: #ff6976;
+.bar .danger {
+  color: #ff6875;
 }
 
 
-/* =========================================================
+/* =====================================================
    BOTTOM SHEET
-========================================================= */
+===================================================== */
 
-.sheet {
+#sheet {
   position: fixed;
 
   z-index: 500;
@@ -1152,9 +885,17 @@ label {
   right: 0;
   bottom: 0;
 
-  max-height: 58vh;
+  max-height: 60vh;
 
-  overflow-y: auto;
+  overflow: auto;
+
+  background: #1a1e25;
+
+  border-radius:
+    18px
+    18px
+    0
+    0;
 
   padding:
     7px
@@ -1164,107 +905,94 @@ label {
       env(safe-area-inset-bottom)
     );
 
-  border-radius:
-    18px
-    18px
-    0
-    0;
-
-  background: #1a1e25;
-
   box-shadow:
     0 -12px 35px #0009;
 }
 
-.sheetHandle {
+.handle {
   width: 38px;
   height: 4px;
 
+  background: #555e6a;
+
+  border-radius: 9px;
+
   margin:
-    0 auto
+    0
+    auto
     8px;
-
-  border-radius: 999px;
-
-  background: #535b67;
 }
 
-.sheetHeader {
+
+/* =====================================================
+   SHEET HEADER
+===================================================== */
+
+.sheetHead {
   display: flex;
 
   align-items: center;
-
-  margin-bottom: 13px;
 }
 
-.sheetHeader b {
+.sheetHead b {
   flex: 1;
-
-  font-size: 14px;
 }
 
-.sheetHeader button {
-  width: 34px;
-  height: 34px;
-
-  border-radius: 50%;
-
-  background: #292f38;
-
-  font-size: 20px;
+.sheetHead button {
+  font-size: 22px;
 }
 
 
-/* =========================================================
-   SHEET OPTIONS
-========================================================= */
+/* =====================================================
+   OPTION BUTTONS
+===================================================== */
 
 .options {
   display: flex;
 
   gap: 8px;
 
-  overflow-x: auto;
+  overflow: auto;
 
-  padding-bottom: 5px;
+  padding:
+    12px
+    0;
 }
 
 .options button {
-  flex: 0 0 auto;
-
   min-width: 76px;
 
-  padding: 12px 10px;
+  padding:
+    12px
+    8px;
+
+  background: #2a3039;
 
   border-radius: 9px;
-
-  background: #292f38;
-
-  font-size: 11px;
-}
-
-.options button:active {
-  background: #3a414c;
 }
 
 
-/* =========================================================
-   INPUT FIELDS
-========================================================= */
+/* =====================================================
+   FIELDS
+===================================================== */
 
 .fields {
   display: grid;
 
   grid-template-columns:
-    repeat(2, minmax(0, 1fr));
+    1fr 1fr;
 
   gap: 10px;
+
+  padding:
+    10px
+    0;
 }
 
 .fields label {
-  color: #a8afb9;
-
   font-size: 10px;
+
+  color: #aab1ba;
 }
 
 .fields input,
@@ -1283,33 +1011,43 @@ label {
 
   border-radius: 8px;
 
-  outline: 0;
-
   background: #11151a;
 
-  color: white;
+  color: #fff;
+}
+
+.fields textarea {
+  min-height: 80px;
+
+  resize: vertical;
 }
 
 .fields input[type="range"] {
   padding: 0;
 
-  accent-color: var(--accent);
+  accent-color: var(--a);
+}
+
+.wide {
+  grid-column:
+    1 / -1;
 }
 
 
-/* =========================================================
+/* =====================================================
    TOAST
-========================================================= */
+===================================================== */
 
 #toast {
   position: fixed;
 
-  z-index: 1000;
+  z-index: 9999;
 
   left: 50%;
+
   bottom:
     calc(
-      82px +
+      85px +
       env(safe-area-inset-bottom)
     );
 
@@ -1318,137 +1056,66 @@ label {
 
   display: none;
 
-  max-width: 80vw;
-
-  padding: 9px 14px;
-
-  border-radius: 9px;
+  max-width: 90vw;
 
   background: #050608e8;
 
-  color: white;
+  padding:
+    9px
+    14px;
 
-  box-shadow:
-    0 6px 20px #0007;
+  border-radius: 9px;
 
   font-size: 11px;
 
-  text-align: center;
-
   white-space: nowrap;
-}
-
-
-/* =========================================================
-   PROJECT MENU
-========================================================= */
-
-.modalBackground {
-  position: fixed;
-
-  z-index: 2000;
-
-  inset: 0;
-
-  display: grid;
-
-  place-items: center;
-
-  padding: 20px;
-
-  background: #000a;
-
-  backdrop-filter:
-    blur(3px);
-
-  -webkit-backdrop-filter:
-    blur(3px);
-}
-
-.projectMenuBox {
-  width:
-    min(
-      320px,
-      90vw
-    );
-
-  overflow: hidden;
-
-  border-radius: 15px;
-
-  background: #1b1f26;
 
   box-shadow:
-    0 20px 50px #000b;
-}
-
-.projectMenuBox h3 {
-  margin: 0;
-
-  padding: 17px;
-
-  border-bottom:
-    1px solid #30353e;
-
-  font-size: 14px;
-}
-
-.projectMenuBox button {
-  width: 100%;
-
-  padding: 14px 16px;
-
-  border-bottom:
-    1px solid #292e36;
-
-  text-align: left;
-
-  font-size: 12px;
-}
-
-.projectMenuBox button:active {
-  background: #282e37;
-}
-
-.dangerText {
-  color: #ff6875;
+    0 8px 24px #0008;
 }
 
 
-/* =========================================================
-   DISABLED
-========================================================= */
+/* =====================================================
+   PHONE
+===================================================== */
 
-button:disabled {
-  opacity: 0.35;
+@media (max-width: 600px) {
+
+  .projects {
+    grid-template-columns:
+      1fr 1fr;
+  }
+
+  .homeMain {
+    padding: 14px;
+  }
+
 }
 
 
-/* =========================================================
-   iPAD LANDSCAPE
-========================================================= */
+/* =====================================================
+   LANDSCAPE / iPAD
+===================================================== */
 
 @media (orientation: landscape) {
 
-  #editorMain {
+  .workspace {
     flex-direction: row;
   }
 
   .preview {
-    flex: 1.2;
+    flex: 1;
   }
 
-  .timelineArea {
-    flex:
-      0 0
-      43%;
-
+  .timeline {
     height: auto;
 
-    border-top: 0;
+    width: 43%;
 
     border-left:
-      1px solid #292e36;
+      1px solid var(--line);
+
+    border-top: 0;
   }
 
   #stage {
@@ -1456,77 +1123,11 @@ button:disabled {
       min(
         65vh,
         calc(
-          100vw * 0.39
+          100vw * .39
         )
       );
 
     width: auto;
-  }
-
-}
-
-
-/* =========================================================
-   SMALL iPHONE / NARROW SCREEN
-========================================================= */
-
-@media (max-width: 500px) {
-
-  .createCards {
-    grid-template-columns:
-      1fr 1fr;
-  }
-
-  .createCard:first-child {
-    grid-column:
-      1 / -1;
-
-    min-height: 105px;
-  }
-
-  .homeContent {
-    padding-left: 13px;
-    padding-right: 13px;
-  }
-
-  .headerButton {
-    width: 34px;
-  }
-
-  .exportButton {
-    padding:
-      0 9px;
-  }
-
-}
-
-
-/* =========================================================
-   iPAD / LARGE DISPLAY
-========================================================= */
-
-@media (min-width: 800px) {
-
-  .homeContent {
-    width: min(900px, 100%);
-
-    margin: 0 auto;
-  }
-
-  .createCards {
-    gap: 15px;
-  }
-
-  .createCard {
-    min-height: 150px;
-  }
-
-  #projectList {
-    grid-template-columns:
-      repeat(
-        3,
-        minmax(0, 1fr)
-      );
   }
 
 }
