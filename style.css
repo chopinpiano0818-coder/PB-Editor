@@ -1,6 +1,5 @@
 /* =========================================================
-   PB EDITOR v3.0
-   EDITOR REBUILD
+   PB EDITOR v3.1 STUDIO
 ========================================================= */
 
 * {
@@ -9,37 +8,39 @@
 }
 
 :root {
-  --bg: #090b0f;
-  --panel: #12151a;
-  --panel2: #181c22;
-  --panel3: #222730;
+  --bg: #080a0e;
+  --panel: #111419;
+  --panel2: #171b21;
+  --panel3: #20252d;
+  --panel4: #292f38;
 
-  --line: #2c323b;
+  --line: #2d333c;
 
   --text: #f6f7f8;
-  --sub: #929aa6;
+  --sub: #929aa5;
 
-  --accent: #ef5267;
-  --accent2: #ff6d80;
+  --accent: #ef5268;
+  --accent2: #ff7385;
 
-  --clip: #39434f;
-  --video: #344b56;
-  --pip: #4b405b;
-  --textclip: #5a425c;
-  --audio: #345044;
+  --video: #314d58;
+  --pip: #4b405d;
+  --textclip: #604660;
+  --sticker: #594d37;
+  --music: #315343;
+  --sfx: #514632;
 
-  --toolbar-h: 70px;
+  --danger: #ff6678;
+
+  --toolbar-height: 70px;
 }
 
-
 /* =========================================================
-   DOCUMENT
+   BASE
 ========================================================= */
 
 html,
 body {
   margin: 0;
-
   width: 100%;
   height: 100%;
 
@@ -57,7 +58,6 @@ body {
   overscroll-behavior: none;
 }
 
-
 button,
 input,
 textarea,
@@ -66,22 +66,27 @@ label {
   font: inherit;
 }
 
-
 button {
   border: 0;
   background: transparent;
   color: inherit;
 }
 
-
 button,
 label {
   user-select: none;
 }
 
+button:active {
+  opacity: .78;
+}
+
+[hidden] {
+  display: none !important;
+}
 
 /* =========================================================
-   SCREEN
+   SCREENS
 ========================================================= */
 
 .screen {
@@ -93,12 +98,10 @@ label {
   background: var(--bg);
 }
 
-
 .screen.active {
   display: flex;
   flex-direction: column;
 }
-
 
 /* =========================================================
    HOME HEADER
@@ -106,147 +109,133 @@ label {
 
 .homeHeader {
   min-height:
-    calc(
-      64px +
-      env(safe-area-inset-top)
-    );
+    calc(64px + env(safe-area-inset-top));
 
   padding:
-    calc(
-      10px +
-      env(safe-area-inset-top)
-    )
+    calc(10px + env(safe-area-inset-top))
     16px
     10px;
 
   display: flex;
-
   align-items: center;
-
-  gap: 10px;
 
   background: #101318;
 
-  border-bottom:
-    1px solid var(--line);
+  border-bottom: 1px solid var(--line);
 }
-
 
 .brand {
   flex: 1;
 
   display: flex;
-
   align-items: center;
 
-  gap: 10px;
+  gap: 11px;
 }
 
-
 .logo {
-  width: 42px;
-  height: 42px;
+  width: 43px;
+  height: 43px;
 
   display: grid;
-
   place-items: center;
 
-  border-radius: 12px;
-
-  font-size: 14px;
-  font-weight: 900;
+  border-radius: 13px;
 
   background:
     linear-gradient(
       145deg,
       #ff667a,
-      #ca3c52
+      #c83d53
     );
 
+  font-size: 14px;
+  font-weight: 900;
+
   box-shadow:
-    0 6px 18px #0005;
+    0 7px 20px #0006;
 }
 
-
-.brand h1 {
+.brandText h1 {
   margin: 0;
 
   font-size: 21px;
 }
 
-
-.brand small {
+.brandText small {
   color: var(--sub);
 
   font-size: 9px;
 }
 
-
 /* =========================================================
-   GENERIC ICON BUTTON
+   ICON BUTTON
 ========================================================= */
 
 .iconBtn {
   width: 38px;
   height: 38px;
 
-  display: grid;
+  flex: 0 0 38px;
 
+  display: grid;
   place-items: center;
 
   border-radius: 9px;
 
   background: #242a33;
 
-  font-size: 19px;
+  font-size: 18px;
 }
-
 
 .iconBtn:active {
   transform: scale(.94);
-
-  background: #303743;
 }
 
-
 /* =========================================================
-   HOME CONTENT
+   HOME
 ========================================================= */
 
 .homeContent {
   flex: 1;
 
-  overflow-y: auto;
-
   width: 100%;
-  max-width: 950px;
+  max-width: 980px;
 
   margin: auto;
+
+  overflow-y: auto;
 
   padding:
     18px
     18px
-    calc(
-      30px +
-      env(safe-area-inset-bottom)
-    );
+    calc(30px + env(safe-area-inset-bottom));
 }
-
 
 .homeSection {
   margin-bottom: 30px;
 }
 
-
 .homeSection h2 {
-  margin:
-    4px
-    0
-    13px;
+  margin: 4px 0 13px;
 
   font-size: 16px;
 }
 
+.sectionTitle {
+  display: flex;
+  align-items: center;
+}
+
+.sectionTitle h2 {
+  flex: 1;
+}
+
+.sectionTitle span {
+  color: var(--sub);
+
+  font-size: 9px;
+}
 
 /* =========================================================
    CREATE PROJECT
@@ -255,18 +244,15 @@ label {
 .createGrid {
   display: grid;
 
-  grid-template-columns:
-    1fr 1fr;
+  grid-template-columns: 1fr 1fr;
 
   gap: 12px;
 }
-
 
 .createCard {
   min-height: 126px;
 
   display: flex;
-
   flex-direction: column;
 
   align-items: center;
@@ -274,73 +260,44 @@ label {
 
   gap: 7px;
 
-  border-radius: 16px;
-
   border:
     1px solid #303742;
+
+  border-radius: 16px;
 
   background: #191e25;
 
   color: #fff;
 }
 
-
 .createCard.primary {
+  border-color: transparent;
+
   background:
     linear-gradient(
       145deg,
       #f05b71,
       #c83c52
     );
-
-  border-color: transparent;
 }
-
 
 .createCard:active {
   transform: scale(.98);
 }
 
-
 .createIcon {
   font-size: 27px;
 }
-
 
 .createCard b {
   font-size: 13px;
 }
 
-
 .createCard span {
+  color: #d8dade;
+
   font-size: 9px;
-
-  color: #d7d9dc;
 }
-
-
-/* =========================================================
-   HOME SECTION TITLE
-========================================================= */
-
-.sectionTitle {
-  display: flex;
-
-  align-items: center;
-}
-
-
-.sectionTitle h2 {
-  flex: 1;
-}
-
-
-.sectionTitle span {
-  font-size: 9px;
-
-  color: var(--sub);
-}
-
 
 /* =========================================================
    PROJECT GRID
@@ -350,14 +307,10 @@ label {
   display: grid;
 
   grid-template-columns:
-    repeat(
-      3,
-      minmax(0, 1fr)
-    );
+    repeat(3, minmax(0, 1fr));
 
   gap: 12px;
 }
-
 
 .projectCard {
   overflow: hidden;
@@ -370,11 +323,9 @@ label {
   background: #171b21;
 }
 
-
 .projectCard:active {
   transform: scale(.985);
 }
-
 
 .projectThumbnail {
   position: relative;
@@ -382,14 +333,12 @@ label {
   aspect-ratio: 16 / 9;
 
   display: grid;
-
   place-items: center;
 
   overflow: hidden;
 
   background: #222831;
 }
-
 
 .projectThumbnail img,
 .projectThumbnail video {
@@ -399,29 +348,24 @@ label {
   object-fit: cover;
 }
 
-
 .projectThumbnail .duration {
   position: absolute;
 
   right: 5px;
   bottom: 5px;
 
-  padding:
-    3px
-    5px;
+  padding: 3px 5px;
 
   border-radius: 4px;
 
-  background: #000b;
+  background: #000c;
 
   font-size: 8px;
 }
 
-
 .projectInfo {
   padding: 9px;
 }
-
 
 .projectInfo b {
   display: block;
@@ -429,12 +373,10 @@ label {
   overflow: hidden;
 
   white-space: nowrap;
-
   text-overflow: ellipsis;
 
   font-size: 11px;
 }
-
 
 .projectInfo small {
   display: block;
@@ -446,17 +388,13 @@ label {
   font-size: 8px;
 }
 
-
 /* =========================================================
    EDITOR HEADER
 ========================================================= */
 
 .editorHeader {
   min-height:
-    calc(
-      54px +
-      env(safe-area-inset-top)
-    );
+    calc(54px + env(safe-area-inset-top));
 
   display: flex;
 
@@ -465,10 +403,7 @@ label {
   gap: 6px;
 
   padding:
-    calc(
-      7px +
-      env(safe-area-inset-top)
-    )
+    calc(7px + env(safe-area-inset-top))
     8px
     7px;
 
@@ -477,9 +412,8 @@ label {
   border-bottom:
     1px solid var(--line);
 
-  z-index: 100;
+  z-index: 300;
 }
-
 
 .projectTitle {
   flex: 1;
@@ -487,14 +421,10 @@ label {
   min-width: 0;
 
   display: flex;
-
   flex-direction: column;
 
   justify-content: center;
-
-  padding-left: 2px;
 }
-
 
 .projectTitle input {
   width: 100%;
@@ -502,7 +432,6 @@ label {
   padding: 0;
 
   border: 0;
-
   outline: 0;
 
   background: transparent;
@@ -513,7 +442,6 @@ label {
   font-weight: 700;
 }
 
-
 .projectTitle small {
   margin-top: 2px;
 
@@ -522,27 +450,18 @@ label {
   font-size: 8px;
 }
 
-
 .exportBtn {
   height: 38px;
 
-  padding:
-    0
-    13px;
+  padding: 0 14px;
 
   border-radius: 9px;
 
   background: var(--accent);
 
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
 }
-
-
-.exportBtn:active {
-  background: var(--accent2);
-}
-
 
 /* =========================================================
    EDITOR BODY
@@ -554,10 +473,8 @@ label {
   min-height: 0;
 
   display: flex;
-
   flex-direction: column;
 }
-
 
 /* =========================================================
    PREVIEW
@@ -569,12 +486,10 @@ label {
   min-height: 0;
 
   display: flex;
-
   flex-direction: column;
 
-  background: #07090c;
+  background: #06080b;
 }
-
 
 #previewViewport {
   flex: 1;
@@ -582,7 +497,6 @@ label {
   min-height: 0;
 
   display: grid;
-
   place-items: center;
 
   overflow: hidden;
@@ -592,12 +506,11 @@ label {
   background:
     radial-gradient(
       circle at center,
-      #1b2027 0,
-      #101318 42%,
+      #1d2229 0,
+      #101318 44%,
       #06070a 100%
     );
 }
-
 
 /* =========================================================
    CANVAS
@@ -606,11 +519,7 @@ label {
 #canvas {
   position: relative;
 
-  width:
-    min(
-      43vh,
-      89vw
-    );
+  width: min(43vh, 89vw);
 
   aspect-ratio: 9 / 16;
 
@@ -622,12 +531,44 @@ label {
 
   box-shadow:
     0 0 0 1px #3b424c,
-    0 10px 35px #0008;
+    0 10px 35px #0009;
 }
 
+/* =========================================================
+   SAFE AREA
+========================================================= */
+
+.safeArea {
+  position: absolute;
+
+  left: 8%;
+  right: 8%;
+  top: 6%;
+  bottom: 12%;
+
+  z-index: 9000;
+
+  border:
+    1px dashed #fff8;
+
+  pointer-events: none;
+}
+
+.safeArea::before {
+  content: "SAFE";
+
+  position: absolute;
+
+  left: 3px;
+  top: 3px;
+
+  color: #fff8;
+
+  font-size: 6px;
+}
 
 /* =========================================================
-   PREVIEW LAYER
+   CANVAS OBJECTS
 ========================================================= */
 
 .canvasLayer {
@@ -636,19 +577,24 @@ label {
   left: 0;
   top: 0;
 
-  transform-origin: center;
-
-  touch-action: none;
+  transform-origin: center center;
 
   user-select: none;
+
+  touch-action: none;
 
   will-change:
     transform,
     width,
     height,
     opacity;
+
+  cursor: grab;
 }
 
+.canvasLayer:active {
+  cursor: grabbing;
+}
 
 .canvasLayer img,
 .canvasLayer video {
@@ -662,24 +608,44 @@ label {
   pointer-events: none;
 }
 
-
-.canvasLayer.textLayer {
+.canvasLayer.textLayer,
+.canvasLayer.stickerLayer {
   display: grid;
-
   place-items: center;
 
   white-space: pre-wrap;
 
   text-align: center;
 
-  font-weight: 700;
-
   line-height: 1.15;
 }
 
+.canvasLayer.textLayer {
+  font-weight: 700;
+}
+
+.canvasLayer.stickerLayer {
+  font-size: 58px;
+}
 
 /* =========================================================
-   SELECTED PREVIEW LAYER
+   TEXT BACKGROUND
+========================================================= */
+
+.textInner {
+  display: inline-block;
+
+  max-width: 100%;
+
+  padding: .15em .28em;
+
+  border-radius: .15em;
+
+  white-space: pre-wrap;
+}
+
+/* =========================================================
+   SELECTED OBJECT
 ========================================================= */
 
 .canvasLayer.selected {
@@ -689,6 +655,9 @@ label {
   outline-offset: 2px;
 }
 
+.canvasLayer.selected.locked {
+  outline-color: #ffbd59;
+}
 
 .canvasLayer.selected::before,
 .canvasLayer.selected::after {
@@ -696,32 +665,35 @@ label {
 
   position: absolute;
 
-  width: 10px;
-  height: 10px;
+  width: 11px;
+  height: 11px;
 
   border-radius: 50%;
 
   background: #fff;
 
   box-shadow:
-    0 0 0 1px #0007;
-}
+    0 0 0 1px #0008;
 
+  pointer-events: none;
+}
 
 .canvasLayer.selected::before {
   left: -6px;
   top: -6px;
 }
 
-
 .canvasLayer.selected::after {
   right: -6px;
   bottom: -6px;
 }
 
+.canvasLayer.hiddenObject {
+  opacity: .18 !important;
+}
 
 /* =========================================================
-   SNAP GUIDES
+   GUIDES
 ========================================================= */
 
 .snapGuide {
@@ -734,13 +706,14 @@ label {
   pointer-events: none;
 
   background: #ff4e69;
-}
 
+  box-shadow:
+    0 0 2px #000;
+}
 
 .snapGuide.show {
   display: block;
 }
-
 
 .snapGuide.vertical {
   top: 0;
@@ -749,7 +722,6 @@ label {
   width: 1px;
 }
 
-
 .snapGuide.horizontal {
   left: 0;
   right: 0;
@@ -757,52 +729,51 @@ label {
   height: 1px;
 }
 
-
 #guideX {
   left: 50%;
 }
-
 
 #guideY {
   top: 50%;
 }
 
-
 #guideLeft {
   left: 0;
 }
-
 
 #guideRight {
   right: 0;
 }
 
-
 #guideTop {
   top: 0;
 }
-
 
 #guideBottom {
   bottom: 0;
 }
 
+.objectGuide {
+  background: #65d7ff;
+}
 
 /* =========================================================
    PREVIEW CONTROLS
 ========================================================= */
 
 .previewControls {
-  height: 42px;
+  min-height: 43px;
+
+  flex-shrink: 0;
 
   display: flex;
 
   align-items: center;
   justify-content: center;
 
-  gap: 11px;
+  gap: 8px;
 
-  flex-shrink: 0;
+  padding: 4px 8px;
 
   background: #12151a;
 
@@ -810,66 +781,63 @@ label {
     1px solid #242a32;
 }
 
-
 .playButton {
-  width: 34px;
-  height: 34px;
+  width: 35px;
+  height: 35px;
+
+  flex: 0 0 35px;
 
   display: grid;
-
   place-items: center;
 
   border-radius: 50%;
 
-  background: #2a3039;
+  background: #2b313a;
 
   font-size: 14px;
 }
 
-
 .smallControl {
-  width: 30px;
+  min-width: 30px;
   height: 30px;
 
-  display: grid;
+  padding: 0 7px;
 
+  display: grid;
   place-items: center;
 
   border-radius: 7px;
 
   background: #21262e;
 
-  font-size: 11px;
+  font-size: 10px;
 }
 
-
 .timeDisplay {
-  min-width: 105px;
+  min-width: 104px;
 
   text-align: center;
+
+  color: #d7dade;
 
   font-size: 9px;
 
   font-variant-numeric:
     tabular-nums;
-
-  color: #d7dade;
 }
 
-
 /* =========================================================
-   TIMELINE AREA
+   TIMELINE
 ========================================================= */
 
 .timelineArea {
   position: relative;
 
-  height: 224px;
+  height: 258px;
 
   flex-shrink: 0;
 
   display: flex;
-
   flex-direction: column;
 
   background: #0d1014;
@@ -878,13 +846,12 @@ label {
     1px solid #2a3038;
 }
 
-
 /* =========================================================
    TIMELINE HEADER
 ========================================================= */
 
 .timelineHeader {
-  height: 29px;
+  height: 31px;
 
   flex-shrink: 0;
 
@@ -893,7 +860,7 @@ label {
   align-items: center;
   justify-content: center;
 
-  gap: 14px;
+  gap: 9px;
 
   background: #12151a;
 
@@ -901,21 +868,21 @@ label {
     1px solid #262c34;
 }
 
-
 .timelineHeader button {
-  width: 25px;
-  height: 21px;
+  min-width: 27px;
+  height: 23px;
+
+  padding: 0 6px;
 
   border-radius: 5px;
 
   background: #272d35;
 
-  font-size: 14px;
+  font-size: 12px;
 }
 
-
 .timelineTitle {
-  min-width: 70px;
+  min-width: 72px;
 
   text-align: center;
 
@@ -923,7 +890,6 @@ label {
 
   font-size: 9px;
 }
-
 
 /* =========================================================
    TIMELINE VIEWPORT
@@ -941,45 +907,26 @@ label {
 
   scrollbar-width: none;
 
+  /*
+    タイムラインはブラウザ側の横スクロールを利用。
+  */
   touch-action: pan-x pan-y;
 
   overscroll-behavior: contain;
 }
 
-
 .timelineViewport::-webkit-scrollbar {
   display: none;
 }
-
-
-/* =========================================================
-   TIMELINE CONTENT
-========================================================= */
 
 .timelineContent {
   position: relative;
 
   min-width: 100%;
-
   min-height: 100%;
 
   padding-top: 24px;
 }
-
-
-/* =========================================================
-   TIMELINE SPACERS
-========================================================= */
-
-.timelineSpacer {
-  position: absolute;
-
-  top: 0;
-  bottom: 0;
-
-  pointer-events: none;
-}
-
 
 /* =========================================================
    RULER
@@ -988,35 +935,43 @@ label {
 .timelineRuler {
   position: absolute;
 
-  left: 0;
   top: 0;
 
-  height: 23px;
+  height: 24px;
 
   border-bottom:
     1px solid #303640;
 
-  background:
-    repeating-linear-gradient(
-      to right,
-      transparent 0,
-      transparent 39px,
-      #4d5561 40px
-    );
-
   pointer-events: none;
 }
 
+.rulerTick {
+  position: absolute;
+
+  bottom: 0;
+
+  width: 1px;
+
+  background: #525b67;
+}
+
+.rulerTick.major {
+  height: 9px;
+}
+
+.rulerTick.minor {
+  height: 4px;
+}
 
 .rulerTime {
   position: absolute;
 
-  top: 4px;
+  top: 3px;
 
   transform:
     translateX(-50%);
 
-  color: #777f89;
+  color: #7f8791;
 
   font-size: 7px;
 
@@ -1024,45 +979,54 @@ label {
     tabular-nums;
 }
 
-
 /* =========================================================
-   TRACK CONTAINER
+   TRACKS
 ========================================================= */
 
 .trackContainer {
   position: relative;
 
-  padding-bottom: 15px;
+  padding-bottom: 18px;
 }
-
-
-/* =========================================================
-   TRACK
-========================================================= */
 
 .track {
   position: relative;
 
-  height: 44px;
+  height: 38px;
 
   margin-bottom: 4px;
 
-  background: #15191f;
+  background: #14181d;
 
   border-top:
-    1px solid #1f242b;
+    1px solid #20252c;
 
   border-bottom:
-    1px solid #1f242b;
+    1px solid #20252c;
 }
 
+.mainTrack {
+  height: 54px;
+
+  background: #14191e;
+}
+
+.overlayTrack {
+  height: 36px;
+}
+
+.audioTrack {
+  height: 39px;
+
+  background: #11161a;
+}
 
 .trackLabel {
   position: sticky;
 
   left: 4px;
 
-  z-index: 15;
+  z-index: 30;
 
   display: inline-flex;
 
@@ -1070,17 +1034,14 @@ label {
 
   height: 100%;
 
-  padding:
-    0
-    4px;
+  padding: 0 4px;
 
-  color: #68717c;
+  color: #707985;
 
   font-size: 6px;
 
   pointer-events: none;
 }
-
 
 .trackClips {
   position: absolute;
@@ -1088,38 +1049,8 @@ label {
   inset: 0;
 }
 
-
 /* =========================================================
-   MAIN VIDEO TRACK
-========================================================= */
-
-.mainTrack {
-  height: 52px;
-
-  background: #14191e;
-}
-
-
-/* =========================================================
-   OVERLAY TRACK
-========================================================= */
-
-.overlayTrack {
-  height: 34px;
-
-  background: #12161b;
-}
-
-
-.audioTrack {
-  height: 34px;
-
-  background: #11161a;
-}
-
-
-/* =========================================================
-   TIMELINE CLIP
+   CLIPS
 ========================================================= */
 
 .timelineClip {
@@ -1137,33 +1068,38 @@ label {
 
   border-radius: 5px;
 
-  background: var(--clip);
+  background: #39434f;
 
   touch-action: none;
 
   user-select: none;
 }
 
-
+.timelineClip.main,
 .timelineClip.video {
   background: var(--video);
 }
-
 
 .timelineClip.pip {
   background: var(--pip);
 }
 
-
 .timelineClip.text {
   background: var(--textclip);
 }
 
-
-.timelineClip.audio {
-  background: var(--audio);
+.timelineClip.sticker {
+  background: var(--sticker);
 }
 
+.timelineClip.music {
+  background: var(--music);
+}
+
+.timelineClip.sfx,
+.timelineClip.audio {
+  background: var(--sfx);
+}
 
 .timelineClip.selected {
   border:
@@ -1173,9 +1109,25 @@ label {
     0 0 0 1px #0008;
 }
 
+.timelineClip.locked::after {
+  content: "🔒";
+
+  position: absolute;
+
+  right: 4px;
+  top: 3px;
+
+  z-index: 10;
+
+  font-size: 8px;
+}
+
+.timelineClip.invisibleClip {
+  opacity: .42;
+}
 
 /* =========================================================
-   VIDEO THUMBNAILS
+   THUMBNAILS
 ========================================================= */
 
 .clipThumbnails {
@@ -1192,12 +1144,8 @@ label {
   pointer-events: none;
 }
 
-
 .clipThumb {
-  flex:
-    0
-    0
-    52px;
+  flex: 0 0 52px;
 
   height: 100%;
 
@@ -1207,6 +1155,23 @@ label {
     1px solid #0004;
 }
 
+/* =========================================================
+   WAVEFORM
+========================================================= */
+
+.clipWaveform {
+  position: absolute;
+
+  inset: 3px 0;
+
+  width: 100%;
+  height:
+    calc(100% - 6px);
+
+  opacity: .65;
+
+  pointer-events: none;
+}
 
 /* =========================================================
    CLIP NAME
@@ -1218,19 +1183,17 @@ label {
   left: 8px;
   top: 50%;
 
+  z-index: 8;
+
   transform:
     translateY(-50%);
 
   max-width:
-    calc(
-      100% -
-      16px
-    );
+    calc(100% - 16px);
 
   overflow: hidden;
 
   white-space: nowrap;
-
   text-overflow: ellipsis;
 
   color: #fff;
@@ -1238,9 +1201,8 @@ label {
   font-size: 8px;
 
   text-shadow:
-    0 1px 3px #000;
+    0 1px 4px #000;
 }
-
 
 /* =========================================================
    TRIM HANDLES
@@ -1252,69 +1214,54 @@ label {
   top: -1px;
   bottom: -1px;
 
-  width: 14px;
+  width: 15px;
 
-  z-index: 20;
+  z-index: 25;
 
   display: none;
 
   background: #fff;
 }
 
-
-.timelineClip.selected
-.trimHandle {
+.timelineClip.selected .trimHandle {
   display: block;
 }
-
 
 .trimHandle.left {
   left: -1px;
 
   border-radius:
-    5px
-    0
-    0
-    5px;
+    5px 0 0 5px;
 }
-
 
 .trimHandle.right {
   right: -1px;
 
   border-radius:
-    0
-    5px
-    5px
-    0;
+    0 5px 5px 0;
 }
-
 
 .trimHandle::after {
   content: "";
 
   position: absolute;
 
-  top: 50%;
   left: 50%;
+  top: 50%;
 
   width: 2px;
-  height: 12px;
+  height: 13px;
 
   transform:
-    translate(
-      -50%,
-      -50%
-    );
+    translate(-50%, -50%);
 
   border-radius: 2px;
 
   background: #555;
 }
 
-
 /* =========================================================
-   KEYFRAME MARKER
+   KEYFRAMES
 ========================================================= */
 
 .keyframeMarker {
@@ -1322,14 +1269,13 @@ label {
 
   top: 50%;
 
-  width: 8px;
-  height: 8px;
+  width: 9px;
+  height: 9px;
+
+  z-index: 15;
 
   transform:
-    translate(
-      -50%,
-      -50%
-    )
+    translate(-50%, -50%)
     rotate(45deg);
 
   border:
@@ -1337,11 +1283,17 @@ label {
 
   background: var(--accent);
 
-  z-index: 12;
-
   pointer-events: none;
 }
 
+.keyframeMarker.current {
+  width: 12px;
+  height: 12px;
+
+  background: #fff;
+
+  border-color: var(--accent);
+}
 
 /* =========================================================
    FIXED PLAYHEAD
@@ -1352,7 +1304,7 @@ label {
 
   left: 50%;
 
-  top: 29px;
+  top: 31px;
   bottom: 0;
 
   width: 1px;
@@ -1364,7 +1316,6 @@ label {
 
   pointer-events: none;
 }
-
 
 .playheadLine {
   position: absolute;
@@ -1382,7 +1333,6 @@ label {
     0 0 2px #000;
 }
 
-
 .playheadHead {
   position: absolute;
 
@@ -1393,14 +1343,50 @@ label {
   height: 13px;
 
   border-radius:
-    3px
-    3px
-    5px
-    5px;
+    3px 3px 5px 5px;
 
   background: #fff;
 }
 
+/* =========================================================
+   FLOATING KEYFRAME BUTTON
+========================================================= */
+
+.floatingKeyframeBtn {
+  position: absolute;
+
+  left:
+    calc(50% + 12px);
+
+  top: 38px;
+
+  z-index: 150;
+
+  width: 27px;
+  height: 27px;
+
+  display: grid;
+  place-items: center;
+
+  border:
+    1px solid #ffffff99;
+
+  border-radius: 50%;
+
+  background: #20252edb;
+
+  color: #fff;
+
+  font-size: 15px;
+
+  backdrop-filter: blur(8px);
+}
+
+.floatingKeyframeBtn.active {
+  border-color: var(--accent);
+
+  background: var(--accent);
+}
 
 /* =========================================================
    BOTTOM TOOLBAR
@@ -1409,7 +1395,7 @@ label {
 .bottomToolbar {
   height:
     calc(
-      var(--toolbar-h)
+      var(--toolbar-height)
       +
       env(safe-area-inset-bottom)
     );
@@ -1436,25 +1422,19 @@ label {
 
   scrollbar-width: none;
 
-  z-index: 200;
+  z-index: 300;
 }
-
 
 .bottomToolbar::-webkit-scrollbar {
   display: none;
 }
 
-
 .toolButton {
-  flex:
-    0
-    0
-    68px;
+  flex: 0 0 67px;
 
   height: 60px;
 
   display: flex;
-
   flex-direction: column;
 
   align-items: center;
@@ -1467,35 +1447,60 @@ label {
   color: #f5f5f6;
 }
 
-
 .toolButton:active {
   background: #292e37;
 }
-
 
 .toolIcon {
   min-height: 24px;
 
   display: grid;
-
   place-items: center;
 
   font-size: 20px;
 }
 
-
 .toolButton span {
   font-size: 8px;
 }
 
-
 .toolButton.danger {
-  color: #ff6a79;
+  color: var(--danger);
 }
 
+/* =========================================================
+   PASTE
+========================================================= */
+
+.pasteButton {
+  position: fixed;
+
+  right: 12px;
+
+  bottom:
+    calc(
+      78px +
+      env(safe-area-inset-bottom)
+    );
+
+  z-index: 600;
+
+  padding: 9px 14px;
+
+  border-radius: 20px;
+
+  background: var(--accent);
+
+  color: #fff;
+
+  font-size: 10px;
+
+  box-shadow:
+    0 5px 18px #0008;
+}
 
 /* =========================================================
-   EDIT SHEET
+   BOTTOM SHEETS
 ========================================================= */
 
 .editSheet {
@@ -1505,56 +1510,48 @@ label {
   right: 0;
   bottom: 0;
 
-  z-index: 1000;
+  z-index: 1500;
 
-  max-height: 62vh;
+  max-height: 64vh;
 
   overflow-y: auto;
 
   padding:
     7px
     14px
-    calc(
-      16px +
-      env(safe-area-inset-bottom)
-    );
+    calc(16px + env(safe-area-inset-bottom));
 
   border-radius:
-    18px
-    18px
-    0
-    0;
+    18px 18px 0 0;
 
   background: #1a1e25;
 
   box-shadow:
-    0 -14px 40px #000a;
+    0 -14px 40px #000b;
 }
 
+.largeSheet {
+  max-height: 76vh;
+}
 
 .sheetHandle {
   width: 38px;
   height: 4px;
 
   margin:
-    0
-    auto
-    8px;
+    0 auto 8px;
 
   border-radius: 10px;
 
   background: #59616d;
 }
 
-
 .sheetHeader {
-  height: 38px;
+  min-height: 38px;
 
   display: flex;
-
   align-items: center;
 }
-
 
 .sheetHeader b {
   flex: 1;
@@ -1564,13 +1561,12 @@ label {
   font-size: 12px;
 }
 
-
+.sheetHeader button,
 .sheetHeaderButton {
-  width: 34px;
-  height: 34px;
+  width: 35px;
+  height: 35px;
 
   display: grid;
-
   place-items: center;
 
   border-radius: 8px;
@@ -1578,19 +1574,16 @@ label {
   background: #262c35;
 }
 
-
 .sheetHeaderButton.apply {
   color: #ff7182;
 }
-
 
 .sheetContent {
   padding-top: 10px;
 }
 
-
 /* =========================================================
-   SHEET OPTIONS
+   OPTIONS
 ========================================================= */
 
 .optionRow {
@@ -1600,25 +1593,19 @@ label {
 
   overflow-x: auto;
 
-  padding:
-    8px
-    0;
+  padding: 8px 0;
 
   scrollbar-width: none;
 }
-
 
 .optionRow::-webkit-scrollbar {
   display: none;
 }
 
-
 .optionButton {
   min-width: 78px;
 
-  padding:
-    12px
-    8px;
+  padding: 12px 8px;
 
   border-radius: 9px;
 
@@ -1627,11 +1614,9 @@ label {
   font-size: 10px;
 }
 
-
 .optionButton.active {
   background: var(--accent);
 }
-
 
 /* =========================================================
    PROPERTY GRID
@@ -1646,13 +1631,11 @@ label {
   gap: 10px;
 }
 
-
 .propertyGrid label {
   color: #a8afb8;
 
   font-size: 9px;
 }
-
 
 .propertyGrid input,
 .propertyGrid select {
@@ -1676,22 +1659,18 @@ label {
   color: #fff;
 }
 
-
 .propertyGrid input[type="range"] {
   padding: 0;
 
   accent-color: var(--accent);
 }
 
-
 .propertyWide {
-  grid-column:
-    1 / -1;
+  grid-column: 1 / -1;
 }
 
-
 /* =========================================================
-   TEXT EDITOR
+   MODAL EDITOR
 ========================================================= */
 
 .modalEditor {
@@ -1699,15 +1678,13 @@ label {
 
   inset: 0;
 
-  z-index: 1500;
+  z-index: 2000;
 
   display: flex;
-
   flex-direction: column;
 
   background: #111419;
 }
-
 
 .modalHeader {
   min-height:
@@ -1725,20 +1702,17 @@ label {
     7px;
 
   display: flex;
-
   align-items: flex-end;
 
   border-bottom:
     1px solid #2b3139;
 }
 
-
 .modalHeader b {
   flex: 1;
 
   text-align: center;
 }
-
 
 .modalHeader button {
   width: 38px;
@@ -1749,13 +1723,54 @@ label {
   background: #262c35;
 }
 
+/* =========================================================
+   TEXT EDITOR
+========================================================= */
+
+.textPreview {
+  min-height: 110px;
+
+  display: grid;
+  place-items: center;
+
+  padding: 15px;
+
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      45deg,
+      #171b20 25%,
+      #1c2127 25%,
+      #1c2127 50%,
+      #171b20 50%,
+      #171b20 75%,
+      #1c2127 75%
+    );
+
+  background-size: 18px 18px;
+}
+
+#textLivePreview {
+  max-width: 90%;
+
+  padding: 4px 7px;
+
+  text-align: center;
+
+  white-space: pre-wrap;
+
+  font-size: 32px;
+  font-weight: 700;
+}
 
 .textInputArea {
   flex: 1;
 
-  padding: 18px;
-}
+  min-height: 130px;
 
+  padding: 14px;
+}
 
 #textInput {
   width: 100%;
@@ -1763,7 +1778,7 @@ label {
 
   resize: none;
 
-  padding: 16px;
+  padding: 14px;
 
   border:
     1px solid #343b45;
@@ -1776,25 +1791,24 @@ label {
 
   color: #fff;
 
-  font-size: 24px;
+  font-size: 21px;
 }
 
-
 .textControls {
+  max-height: 42vh;
+
+  overflow-y: auto;
+
   padding:
     12px
     15px
-    calc(
-      18px +
-      env(safe-area-inset-bottom)
-    );
+    calc(18px + env(safe-area-inset-bottom));
 
   border-top:
     1px solid #2b3139;
 
   background: #171b21;
 }
-
 
 .textControls label {
   display: block;
@@ -1806,7 +1820,6 @@ label {
   font-size: 9px;
 }
 
-
 .textControls input {
   width: 100%;
 
@@ -1815,9 +1828,21 @@ label {
   accent-color: var(--accent);
 }
 
+.toggleLabel {
+  display: flex !important;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 20px;
+}
+
+.toggleLabel input {
+  width: auto;
+}
 
 /* =========================================================
-   ANIMATION PANEL
+   ANIMATION
 ========================================================= */
 
 .animationTabs {
@@ -1829,16 +1854,11 @@ label {
   gap: 5px;
 
   margin:
-    7px
-    0
-    12px;
+    7px 0 12px;
 }
 
-
 .animationTabs button {
-  padding:
-    9px
-    5px;
+  padding: 9px 5px;
 
   border-radius: 8px;
 
@@ -1849,32 +1869,25 @@ label {
   font-size: 9px;
 }
 
-
 .animationTabs button.active {
   background: var(--accent);
 
   color: #fff;
 }
 
-
 .animationList {
   display: grid;
 
   grid-template-columns:
-    repeat(
-      4,
-      minmax(0, 1fr)
-    );
+    repeat(4, minmax(0, 1fr));
 
   gap: 8px;
 }
 
-
 .animationItem {
-  min-height: 66px;
+  min-height: 67px;
 
   display: flex;
-
   flex-direction: column;
 
   align-items: center;
@@ -1889,19 +1902,18 @@ label {
   font-size: 18px;
 }
 
-
 .animationItem span {
   font-size: 8px;
 
   color: #c4c8ce;
 }
 
-
 .animationItem.active {
   outline:
     2px solid var(--accent);
-}
 
+  background: #333943;
+}
 
 .animationSettings {
   margin-top: 14px;
@@ -1912,24 +1924,470 @@ label {
     1px solid #303640;
 }
 
-
 .animationSettings label {
   display: block;
 
-  margin-bottom: 12px;
+  margin-bottom: 13px;
 
   color: #aab1ba;
 
   font-size: 9px;
 }
 
+.rangeWithValue {
+  display: flex;
 
-.animationSettings input {
-  width: 100%;
+  align-items: center;
+
+  gap: 10px;
+
+  margin-top: 5px;
+}
+
+.rangeWithValue input {
+  flex: 1;
 
   accent-color: var(--accent);
 }
 
+.rangeWithValue span {
+  min-width: 48px;
+
+  text-align: right;
+
+  color: #fff;
+
+  font-size: 9px;
+}
+
+/* =========================================================
+   KEYFRAME EDITOR
+========================================================= */
+
+.keyframeActions {
+  display: flex;
+
+  gap: 8px;
+
+  margin:
+    10px 0;
+}
+
+.keyframeActions button {
+  flex: 1;
+
+  min-height: 40px;
+
+  padding: 8px;
+
+  border-radius: 9px;
+
+  background: #292f38;
+
+  font-size: 10px;
+}
+
+.dangerButton {
+  color: var(--danger) !important;
+}
+
+.easingPreview {
+  margin-top: 12px;
+
+  overflow: hidden;
+
+  border:
+    1px solid #353c46;
+
+  border-radius: 10px;
+
+  background: #101318;
+}
+
+#easingCanvas {
+  display: block;
+
+  width: 100%;
+  height: 110px;
+}
+
+/* =========================================================
+   CROP EDITOR
+========================================================= */
+
+.cropWorkspace {
+  flex: 1;
+
+  min-height: 0;
+
+  display: grid;
+  place-items: center;
+
+  overflow: hidden;
+
+  padding: 18px;
+
+  background: #07090c;
+}
+
+#cropStage {
+  position: relative;
+
+  width: min(90vw, 600px);
+
+  aspect-ratio: 9 / 16;
+
+  overflow: hidden;
+
+  background: #111;
+
+  touch-action: none;
+}
+
+#cropMedia {
+  position: absolute;
+
+  inset: 0;
+
+  display: grid;
+  place-items: center;
+
+  overflow: hidden;
+}
+
+#cropMedia img,
+#cropMedia video {
+  width: 100%;
+  height: 100%;
+
+  object-fit: contain;
+}
+
+#cropBox {
+  position: absolute;
+
+  left: 10%;
+  top: 15%;
+
+  width: 80%;
+  height: 70%;
+
+  z-index: 20;
+
+  border:
+    2px solid #fff;
+
+  touch-action: none;
+}
+
+#cropBox::before,
+#cropBox::after {
+  content: "";
+
+  position: absolute;
+
+  pointer-events: none;
+}
+
+#cropBox::before {
+  left: 33.333%;
+  top: 0;
+  bottom: 0;
+
+  width: 33.333%;
+
+  border-left:
+    1px solid #ffffff66;
+
+  border-right:
+    1px solid #ffffff66;
+}
+
+#cropBox::after {
+  top: 33.333%;
+  left: 0;
+  right: 0;
+
+  height: 33.333%;
+
+  border-top:
+    1px solid #ffffff66;
+
+  border-bottom:
+    1px solid #ffffff66;
+}
+
+.cropHandle {
+  position: absolute;
+
+  width: 17px;
+  height: 17px;
+
+  border:
+    3px solid #fff;
+
+  z-index: 25;
+}
+
+.cropHandle.nw {
+  left: -3px;
+  top: -3px;
+
+  border-right: 0;
+  border-bottom: 0;
+}
+
+.cropHandle.ne {
+  right: -3px;
+  top: -3px;
+
+  border-left: 0;
+  border-bottom: 0;
+}
+
+.cropHandle.sw {
+  left: -3px;
+  bottom: -3px;
+
+  border-right: 0;
+  border-top: 0;
+}
+
+.cropHandle.se {
+  right: -3px;
+  bottom: -3px;
+
+  border-left: 0;
+  border-top: 0;
+}
+
+#cropShadeTop,
+#cropShadeLeft,
+#cropShadeRight,
+#cropShadeBottom {
+  position: absolute;
+
+  z-index: 15;
+
+  background: #0009;
+
+  pointer-events: none;
+}
+
+.cropToolbar {
+  display: flex;
+
+  gap: 6px;
+
+  overflow-x: auto;
+
+  padding:
+    10px
+    10px
+    calc(14px + env(safe-area-inset-bottom));
+
+  background: #171b21;
+}
+
+.cropToolbar button {
+  flex: 0 0 66px;
+
+  padding: 10px 5px;
+
+  border-radius: 8px;
+
+  background: #292f38;
+
+  font-size: 9px;
+}
+
+.cropToolbar button.active {
+  background: var(--accent);
+}
+
+/* =========================================================
+   AUDIO PANEL
+========================================================= */
+
+.audioImport {
+  padding: 10px 0 14px;
+}
+
+.bigImportButton {
+  min-height: 52px;
+
+  display: grid;
+  place-items: center;
+
+  border:
+    1px dashed #505965;
+
+  border-radius: 11px;
+
+  background: #242a32;
+
+  font-size: 10px;
+}
+
+.audioPresetTitle {
+  margin:
+    5px 0 9px;
+
+  color: #929aa5;
+
+  font-size: 9px;
+}
+
+.audioPresetList {
+  display: grid;
+
+  grid-template-columns:
+    repeat(5, 1fr);
+
+  gap: 7px;
+}
+
+.audioPresetList button {
+  min-height: 62px;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 5px;
+
+  border-radius: 9px;
+
+  background: #292f38;
+
+  font-size: 18px;
+}
+
+.audioPresetList span {
+  font-size: 7px;
+}
+
+/* =========================================================
+   STICKERS
+========================================================= */
+
+.stickerGrid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, 1fr);
+
+  gap: 8px;
+
+  padding:
+    10px 0;
+}
+
+.stickerGrid button {
+  aspect-ratio: 1;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 11px;
+
+  background: #292f38;
+
+  font-size: 31px;
+}
+
+/* =========================================================
+   TRACK MANAGER
+========================================================= */
+
+.trackManagerList {
+  display: flex;
+  flex-direction: column;
+
+  gap: 7px;
+
+  padding:
+    9px 0;
+}
+
+.trackManagerItem {
+  min-height: 48px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  padding: 7px 9px;
+
+  border-radius: 9px;
+
+  background: #272d35;
+}
+
+.trackManagerThumb {
+  width: 42px;
+  height: 34px;
+
+  flex: 0 0 42px;
+
+  display: grid;
+  place-items: center;
+
+  overflow: hidden;
+
+  border-radius: 5px;
+
+  background: #11151a;
+}
+
+.trackManagerThumb img,
+.trackManagerThumb video {
+  width: 100%;
+  height: 100%;
+
+  object-fit: cover;
+}
+
+.trackManagerInfo {
+  flex: 1;
+
+  min-width: 0;
+}
+
+.trackManagerInfo b {
+  display: block;
+
+  overflow: hidden;
+
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  font-size: 9px;
+}
+
+.trackManagerInfo small {
+  color: #929aa5;
+
+  font-size: 7px;
+}
+
+.trackManagerItem button {
+  width: 31px;
+  height: 31px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 7px;
+
+  background: #353c46;
+
+  font-size: 11px;
+}
 
 /* =========================================================
    CONTEXT MENU
@@ -1938,9 +2396,9 @@ label {
 .contextMenu {
   position: fixed;
 
-  z-index: 3000;
+  z-index: 4000;
 
-  min-width: 130px;
+  min-width: 140px;
 
   overflow: hidden;
 
@@ -1952,18 +2410,15 @@ label {
   background: #20252d;
 
   box-shadow:
-    0 10px 35px #000a;
+    0 10px 35px #000b;
 }
-
 
 .contextMenu button {
   display: block;
 
   width: 100%;
 
-  padding:
-    11px
-    14px;
+  padding: 11px 14px;
 
   text-align: left;
 
@@ -1973,16 +2428,13 @@ label {
   font-size: 10px;
 }
 
-
 .contextMenu button:last-child {
   border-bottom: 0;
 }
 
-
 .contextMenu .danger {
-  color: #ff6979;
+  color: var(--danger);
 }
-
 
 /* =========================================================
    TOAST
@@ -2008,78 +2460,100 @@ label {
   transform:
     translateX(-50%);
 
-  padding:
-    9px
-    14px;
+  padding: 9px 14px;
 
   border-radius: 9px;
 
-  background: #050608e8;
-
-  box-shadow:
-    0 8px 25px #0009;
-
-  white-space: nowrap;
+  background: #050608ed;
 
   color: #fff;
 
+  white-space: nowrap;
+
   font-size: 10px;
+
+  box-shadow:
+    0 8px 25px #0009;
 }
 
-
 /* =========================================================
-   HIDDEN
+   PHONE
 ========================================================= */
 
-[hidden] {
-  display: none !important;
-}
-
-
-/* =========================================================
-   SMALL PHONE
-========================================================= */
-
-@media (
-  max-width: 600px
-) {
+@media (max-width: 600px) {
 
   .homeContent {
     padding-left: 13px;
     padding-right: 13px;
   }
 
-
   .projectGrid {
     grid-template-columns:
       1fr 1fr;
   }
 
-
   .timelineArea {
-    height: 214px;
+    height: 246px;
   }
 
-
   .toolButton {
-    flex-basis: 65px;
+    flex-basis: 64px;
+  }
+
+  .animationList {
+    grid-template-columns:
+      repeat(3, 1fr);
+  }
+
+  .audioPresetList {
+    grid-template-columns:
+      repeat(3, 1fr);
   }
 
 }
 
-
 /* =========================================================
-   IPAD / LANDSCAPE
+   IPAD PORTRAIT
 ========================================================= */
 
-@media (
-  orientation: landscape
-) {
+@media
+(min-width: 700px)
+and
+(orientation: portrait) {
+
+  #canvas {
+    width:
+      min(
+        41vh,
+        72vw
+      );
+  }
+
+  .timelineArea {
+    height: 280px;
+  }
+
+  .animationList {
+    grid-template-columns:
+      repeat(5, 1fr);
+  }
+
+  .stickerGrid {
+    grid-template-columns:
+      repeat(6, 1fr);
+  }
+
+}
+
+/* =========================================================
+   LANDSCAPE
+========================================================= */
+
+@media (orientation: landscape) {
 
   .editorBody {
     flex-direction: row;
   }
-
 
   .previewArea {
     flex: 1;
@@ -2087,9 +2561,8 @@ label {
     min-width: 0;
   }
 
-
   .timelineArea {
-    width: 44%;
+    width: 46%;
     height: auto;
 
     border-top: 0;
@@ -2098,48 +2571,43 @@ label {
       1px solid #2c323b;
   }
 
-
   #canvas {
     width: auto;
 
     height:
       min(
         66vh,
-        74%
+        75%
       );
+  }
+
+  .editSheet {
+    left: auto;
+
+    width: min(480px, 55vw);
+
+    border-radius:
+      18px 0 0 0;
   }
 
 }
 
-
 /* =========================================================
-   LARGE IPAD
+   LARGE SCREEN
 ========================================================= */
 
-@media (
-  min-width: 900px
-)
-and
-(
-  orientation: portrait
-) {
+@media (min-width: 1000px) {
 
-  #canvas {
-    width:
-      min(
-        39vh,
-        70vw
-      );
+  .homeContent {
+    max-width: 1100px;
   }
-
-
-  .timelineArea {
-    height: 245px;
-  }
-
 
   .bottomToolbar {
     justify-content: center;
+  }
+
+  .toolButton {
+    flex-basis: 72px;
   }
 
 }
