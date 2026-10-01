@@ -1,54 +1,91 @@
+/* =========================================================
+   PB EDITOR v3.0
+   EDITOR REBUILD
+========================================================= */
+
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
 }
 
 :root {
-  --bg: #0b0d11;
-  --p: #15181e;
-  --p2: #222730;
-  --line: #2c313a;
-  --txt: #f7f7f8;
+  --bg: #090b0f;
+  --panel: #12151a;
+  --panel2: #181c22;
+  --panel3: #222730;
+
+  --line: #2c323b;
+
+  --text: #f6f7f8;
   --sub: #929aa6;
-  --a: #ef5267;
+
+  --accent: #ef5267;
+  --accent2: #ff6d80;
+
+  --clip: #39434f;
+  --video: #344b56;
+  --pip: #4b405b;
+  --textclip: #5a425c;
+  --audio: #345044;
+
+  --toolbar-h: 70px;
 }
+
+
+/* =========================================================
+   DOCUMENT
+========================================================= */
 
 html,
 body {
   margin: 0;
+
   width: 100%;
   height: 100%;
+
   overflow: hidden;
 
   background: var(--bg);
-  color: var(--txt);
+  color: var(--text);
 
   font-family:
     -apple-system,
     BlinkMacSystemFont,
     "Segoe UI",
     sans-serif;
+
+  overscroll-behavior: none;
 }
+
 
 button,
 input,
+textarea,
+select,
 label {
   font: inherit;
 }
 
+
 button {
   border: 0;
-  color: inherit;
   background: transparent;
+  color: inherit;
 }
 
 
-/* =====================================================
+button,
+label {
+  user-select: none;
+}
+
+
+/* =========================================================
    SCREEN
-===================================================== */
+========================================================= */
 
 .screen {
-  position: absolute;
+  position: fixed;
   inset: 0;
 
   display: none;
@@ -56,111 +93,177 @@ button {
   background: var(--bg);
 }
 
+
 .screen.active {
   display: flex;
   flex-direction: column;
 }
 
 
-/* =====================================================
-   HOME HEADER / EDITOR HEADER
-===================================================== */
+/* =========================================================
+   HOME HEADER
+========================================================= */
 
-.homeHead,
-.editHead {
+.homeHeader {
+  min-height:
+    calc(
+      64px +
+      env(safe-area-inset-top)
+    );
+
+  padding:
+    calc(
+      10px +
+      env(safe-area-inset-top)
+    )
+    16px
+    10px;
+
   display: flex;
+
   align-items: center;
 
-  gap: 7px;
+  gap: 10px;
 
-  background: #11141a;
+  background: #101318;
 
   border-bottom:
     1px solid var(--line);
-
-  padding:
-    calc(8px + env(safe-area-inset-top))
-    12px
-    8px;
 }
 
 
-/* =====================================================
-   HOME HEADER
-===================================================== */
-
-.homeHead div {
+.brand {
   flex: 1;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
 }
 
-.homeHead h1 {
-  font-size: 24px;
+
+.logo {
+  width: 42px;
+  height: 42px;
+
+  display: grid;
+
+  place-items: center;
+
+  border-radius: 12px;
+
+  font-size: 14px;
+  font-weight: 900;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ff667a,
+      #ca3c52
+    );
+
+  box-shadow:
+    0 6px 18px #0005;
+}
+
+
+.brand h1 {
   margin: 0;
+
+  font-size: 21px;
 }
 
-.homeHead small,
-.title small {
+
+.brand small {
   color: var(--sub);
+
   font-size: 9px;
 }
 
-.homeHead button,
-.editHead > button {
+
+/* =========================================================
+   GENERIC ICON BUTTON
+========================================================= */
+
+.iconBtn {
+  width: 38px;
   height: 38px;
-  min-width: 38px;
+
+  display: grid;
+
+  place-items: center;
 
   border-radius: 9px;
 
-  background: var(--p2);
+  background: #242a33;
+
+  font-size: 19px;
 }
 
 
-/* =====================================================
-   HOME MAIN
-===================================================== */
+.iconBtn:active {
+  transform: scale(.94);
 
-.homeMain {
+  background: #303743;
+}
+
+
+/* =========================================================
+   HOME CONTENT
+========================================================= */
+
+.homeContent {
   flex: 1;
 
-  overflow: auto;
+  overflow-y: auto;
 
-  padding: 20px;
-
-  max-width: 950px;
   width: 100%;
+  max-width: 950px;
 
   margin: auto;
+
+  padding:
+    18px
+    18px
+    calc(
+      30px +
+      env(safe-area-inset-bottom)
+    );
 }
 
-.homeMain h2 {
+
+.homeSection {
+  margin-bottom: 30px;
+}
+
+
+.homeSection h2 {
+  margin:
+    4px
+    0
+    13px;
+
   font-size: 16px;
 }
 
 
-/* =====================================================
+/* =========================================================
    CREATE PROJECT
-===================================================== */
+========================================================= */
 
-.create {
+.createGrid {
   display: grid;
 
   grid-template-columns:
     1fr 1fr;
 
   gap: 12px;
-
-  margin-bottom: 28px;
 }
 
-.new {
-  min-height: 120px;
 
-  border-radius: 16px;
-
-  background: #1b2028;
-
-  border:
-    1px solid #303641;
+.createCard {
+  min-height: 126px;
 
   display: flex;
 
@@ -171,58 +274,79 @@ button {
 
   gap: 7px;
 
-  font-size: 25px;
+  border-radius: 16px;
 
-  user-select: none;
+  border:
+    1px solid #303742;
+
+  background: #191e25;
+
+  color: #fff;
 }
 
-.new.primary {
+
+.createCard.primary {
   background:
     linear-gradient(
       145deg,
       #f05b71,
-      #c93d53
+      #c83c52
     );
+
+  border-color: transparent;
 }
 
-.new b {
-  font-size: 14px;
-}
 
-.new span {
-  font-size: 9px;
-  color: #ddd;
-}
-
-.new:active {
+.createCard:active {
   transform: scale(.98);
 }
 
 
-/* =====================================================
-   PROJECT SECTION
-===================================================== */
+.createIcon {
+  font-size: 27px;
+}
+
+
+.createCard b {
+  font-size: 13px;
+}
+
+
+.createCard span {
+  font-size: 9px;
+
+  color: #d7d9dc;
+}
+
+
+/* =========================================================
+   HOME SECTION TITLE
+========================================================= */
 
 .sectionTitle {
   display: flex;
+
   align-items: center;
 }
+
 
 .sectionTitle h2 {
   flex: 1;
 }
 
+
 .sectionTitle span {
   font-size: 9px;
+
   color: var(--sub);
 }
 
 
-/* =====================================================
+/* =========================================================
    PROJECT GRID
-===================================================== */
+========================================================= */
 
-.projects {
+.projectGrid {
   display: grid;
 
   grid-template-columns:
@@ -234,42 +358,41 @@ button {
   gap: 12px;
 }
 
-.project {
+
+.projectCard {
   overflow: hidden;
 
   border:
-    1px solid #2c323c;
+    1px solid #2d333c;
 
-  border-radius: 12px;
+  border-radius: 13px;
 
-  background: #181c22;
+  background: #171b21;
 }
 
-.project:active {
+
+.projectCard:active {
   transform: scale(.985);
 }
 
 
-/* =====================================================
-   PROJECT THUMBNAIL
-===================================================== */
+.projectThumbnail {
+  position: relative;
 
-.thumb {
   aspect-ratio: 16 / 9;
-
-  background: #222832;
 
   display: grid;
 
   place-items: center;
 
-  font-size: 30px;
-
   overflow: hidden;
+
+  background: #222831;
 }
 
-.thumb img,
-.thumb video {
+
+.projectThumbnail img,
+.projectThumbnail video {
   width: 100%;
   height: 100%;
 
@@ -277,99 +400,155 @@ button {
 }
 
 
-/* =====================================================
-   PROJECT INFO
-===================================================== */
+.projectThumbnail .duration {
+  position: absolute;
 
-.pinfo {
+  right: 5px;
+  bottom: 5px;
+
+  padding:
+    3px
+    5px;
+
+  border-radius: 4px;
+
+  background: #000b;
+
+  font-size: 8px;
+}
+
+
+.projectInfo {
   padding: 9px;
 }
 
-.pinfo b {
+
+.projectInfo b {
   display: block;
 
-  white-space: nowrap;
   overflow: hidden;
+
+  white-space: nowrap;
+
   text-overflow: ellipsis;
 
   font-size: 11px;
 }
 
-.pinfo small {
+
+.projectInfo small {
+  display: block;
+
+  margin-top: 3px;
+
+  color: var(--sub);
+
   font-size: 8px;
-  color: var(--sub);
 }
 
 
-/* =====================================================
-   EMPTY HOME
-===================================================== */
-
-.empty {
-  grid-column: 1 / -1;
-
-  padding: 50px;
-
-  text-align: center;
-
-  border:
-    1px dashed #333a44;
-
-  border-radius: 14px;
-
-  color: var(--sub);
-}
-
-
-/* =====================================================
+/* =========================================================
    EDITOR HEADER
-===================================================== */
+========================================================= */
 
-.editHead {
-  height:
+.editorHeader {
+  min-height:
     calc(
       54px +
       env(safe-area-inset-top)
     );
 
+  display: flex;
+
   align-items: flex-end;
+
+  gap: 6px;
+
+  padding:
+    calc(
+      7px +
+      env(safe-area-inset-top)
+    )
+    8px
+    7px;
+
+  background: #111419;
+
+  border-bottom:
+    1px solid var(--line);
+
+  z-index: 100;
 }
 
-.title {
+
+.projectTitle {
   flex: 1;
 
   min-width: 0;
 
   display: flex;
+
   flex-direction: column;
+
+  justify-content: center;
+
+  padding-left: 2px;
 }
 
-.title input {
+
+.projectTitle input {
+  width: 100%;
+
+  padding: 0;
+
   border: 0;
+
+  outline: 0;
+
   background: transparent;
 
   color: #fff;
 
+  font-size: 12px;
   font-weight: 700;
-
-  outline: 0;
-
-  min-width: 0;
-}
-
-.editHead .export {
-  background: var(--a);
-
-  padding-left: 10px;
-  padding-right: 10px;
 }
 
 
-/* =====================================================
-   WORKSPACE
-===================================================== */
+.projectTitle small {
+  margin-top: 2px;
 
-.workspace {
+  color: var(--sub);
+
+  font-size: 8px;
+}
+
+
+.exportBtn {
+  height: 38px;
+
+  padding:
+    0
+    13px;
+
+  border-radius: 9px;
+
+  background: var(--accent);
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+
+.exportBtn:active {
+  background: var(--accent2);
+}
+
+
+/* =========================================================
+   EDITOR BODY
+========================================================= */
+
+.editorBody {
   flex: 1;
 
   min-height: 0;
@@ -380,11 +559,11 @@ button {
 }
 
 
-/* =====================================================
+/* =========================================================
    PREVIEW
-===================================================== */
+========================================================= */
 
-.preview {
+.previewArea {
   flex: 1;
 
   min-height: 0;
@@ -392,10 +571,12 @@ button {
   display: flex;
 
   flex-direction: column;
+
+  background: #07090c;
 }
 
-.viewer,
-#viewer {
+
+#previewViewport {
   flex: 1;
 
   min-height: 0;
@@ -404,50 +585,52 @@ button {
 
   place-items: center;
 
-  background:
-    radial-gradient(
-      circle,
-      #181c22,
-      #07080a 70%
-    );
+  overflow: hidden;
 
   padding: 8px;
 
-  overflow: hidden;
+  background:
+    radial-gradient(
+      circle at center,
+      #1b2027 0,
+      #101318 42%,
+      #06070a 100%
+    );
 }
 
 
-/* =====================================================
-   STAGE
-===================================================== */
+/* =========================================================
+   CANVAS
+========================================================= */
 
-#stage {
+#canvas {
   position: relative;
 
   width:
     min(
-      42vh,
-      88vw
+      43vh,
+      89vw
     );
 
   aspect-ratio: 9 / 16;
 
-  background: #111;
-
   overflow: hidden;
+
+  background: #111;
 
   touch-action: none;
 
   box-shadow:
-    0 0 0 1px #353b45;
+    0 0 0 1px #3b424c,
+    0 10px 35px #0008;
 }
 
 
-/* =====================================================
-   LAYERS
-===================================================== */
+/* =========================================================
+   PREVIEW LAYER
+========================================================= */
 
-.layer {
+.canvasLayer {
   position: absolute;
 
   left: 0;
@@ -461,12 +644,14 @@ button {
 
   will-change:
     transform,
-    opacity,
-    filter;
+    width,
+    height,
+    opacity;
 }
 
-.layer img,
-.layer video {
+
+.canvasLayer img,
+.canvasLayer video {
   display: block;
 
   width: 100%;
@@ -478,11 +663,7 @@ button {
 }
 
 
-/* =====================================================
-   TEXT LAYER
-===================================================== */
-
-.layer.text {
+.canvasLayer.textLayer {
   display: grid;
 
   place-items: center;
@@ -492,14 +673,16 @@ button {
   text-align: center;
 
   font-weight: 700;
+
+  line-height: 1.15;
 }
 
 
-/* =====================================================
-   SELECTED LAYER
-===================================================== */
+/* =========================================================
+   SELECTED PREVIEW LAYER
+========================================================= */
 
-.layer.selected {
+.canvasLayer.selected {
   outline:
     2px solid #fff;
 
@@ -507,51 +690,203 @@ button {
 }
 
 
-/* =====================================================
-   SNAP GUIDES
-===================================================== */
+.canvasLayer.selected::before,
+.canvasLayer.selected::after {
+  content: "";
 
-.guide {
   position: absolute;
 
-  z-index: 999;
+  width: 10px;
+  height: 10px;
+
+  border-radius: 50%;
+
+  background: #fff;
+
+  box-shadow:
+    0 0 0 1px #0007;
+}
+
+
+.canvasLayer.selected::before {
+  left: -6px;
+  top: -6px;
+}
+
+
+.canvasLayer.selected::after {
+  right: -6px;
+  bottom: -6px;
+}
+
+
+/* =========================================================
+   SNAP GUIDES
+========================================================= */
+
+.snapGuide {
+  position: absolute;
 
   display: none;
 
-  background: #ff4765;
+  z-index: 9999;
 
   pointer-events: none;
+
+  background: #ff4e69;
 }
 
-.guide.show {
+
+.snapGuide.show {
   display: block;
 }
 
-.guide.v {
+
+.snapGuide.vertical {
   top: 0;
   bottom: 0;
-
-  left: 50%;
 
   width: 1px;
 }
 
-.guide.h {
+
+.snapGuide.horizontal {
   left: 0;
   right: 0;
-
-  top: 50%;
 
   height: 1px;
 }
 
 
-/* =====================================================
-   TRANSPORT
-===================================================== */
+#guideX {
+  left: 50%;
+}
 
-.transport {
+
+#guideY {
+  top: 50%;
+}
+
+
+#guideLeft {
+  left: 0;
+}
+
+
+#guideRight {
+  right: 0;
+}
+
+
+#guideTop {
+  top: 0;
+}
+
+
+#guideBottom {
+  bottom: 0;
+}
+
+
+/* =========================================================
+   PREVIEW CONTROLS
+========================================================= */
+
+.previewControls {
   height: 42px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 11px;
+
+  flex-shrink: 0;
+
+  background: #12151a;
+
+  border-top:
+    1px solid #242a32;
+}
+
+
+.playButton {
+  width: 34px;
+  height: 34px;
+
+  display: grid;
+
+  place-items: center;
+
+  border-radius: 50%;
+
+  background: #2a3039;
+
+  font-size: 14px;
+}
+
+
+.smallControl {
+  width: 30px;
+  height: 30px;
+
+  display: grid;
+
+  place-items: center;
+
+  border-radius: 7px;
+
+  background: #21262e;
+
+  font-size: 11px;
+}
+
+
+.timeDisplay {
+  min-width: 105px;
+
+  text-align: center;
+
+  font-size: 9px;
+
+  font-variant-numeric:
+    tabular-nums;
+
+  color: #d7dade;
+}
+
+
+/* =========================================================
+   TIMELINE AREA
+========================================================= */
+
+.timelineArea {
+  position: relative;
+
+  height: 224px;
+
+  flex-shrink: 0;
+
+  display: flex;
+
+  flex-direction: column;
+
+  background: #0d1014;
+
+  border-top:
+    1px solid #2a3038;
+}
+
+
+/* =========================================================
+   TIMELINE HEADER
+========================================================= */
+
+.timelineHeader {
+  height: 29px;
+
+  flex-shrink: 0;
 
   display: flex;
 
@@ -560,288 +895,563 @@ button {
 
   gap: 14px;
 
-  background: #14171c;
+  background: #12151a;
+
+  border-bottom:
+    1px solid #262c34;
 }
 
-.transport button {
-  width: 32px;
-  height: 32px;
 
-  border-radius: 50%;
+.timelineHeader button {
+  width: 25px;
+  height: 21px;
 
-  background: #262c35;
+  border-radius: 5px;
+
+  background: #272d35;
+
+  font-size: 14px;
 }
 
-.transport span {
+
+.timelineTitle {
+  min-width: 70px;
+
+  text-align: center;
+
+  color: #9ba2ac;
+
   font-size: 9px;
+}
+
+
+/* =========================================================
+   TIMELINE VIEWPORT
+========================================================= */
+
+.timelineViewport {
+  position: relative;
+
+  flex: 1;
+
+  min-height: 0;
+
+  overflow-x: auto;
+  overflow-y: auto;
+
+  scrollbar-width: none;
+
+  touch-action: pan-x pan-y;
+
+  overscroll-behavior: contain;
+}
+
+
+.timelineViewport::-webkit-scrollbar {
+  display: none;
+}
+
+
+/* =========================================================
+   TIMELINE CONTENT
+========================================================= */
+
+.timelineContent {
+  position: relative;
+
+  min-width: 100%;
+
+  min-height: 100%;
+
+  padding-top: 24px;
+}
+
+
+/* =========================================================
+   TIMELINE SPACERS
+========================================================= */
+
+.timelineSpacer {
+  position: absolute;
+
+  top: 0;
+  bottom: 0;
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   RULER
+========================================================= */
+
+.timelineRuler {
+  position: absolute;
+
+  left: 0;
+  top: 0;
+
+  height: 23px;
+
+  border-bottom:
+    1px solid #303640;
+
+  background:
+    repeating-linear-gradient(
+      to right,
+      transparent 0,
+      transparent 39px,
+      #4d5561 40px
+    );
+
+  pointer-events: none;
+}
+
+
+.rulerTime {
+  position: absolute;
+
+  top: 4px;
+
+  transform:
+    translateX(-50%);
+
+  color: #777f89;
+
+  font-size: 7px;
 
   font-variant-numeric:
     tabular-nums;
 }
 
 
-/* =====================================================
-   TIMELINE
-===================================================== */
+/* =========================================================
+   TRACK CONTAINER
+========================================================= */
 
-.timeline {
-  height: 190px;
+.trackContainer {
+  position: relative;
 
-  background: #0f1217;
+  padding-bottom: 15px;
+}
+
+
+/* =========================================================
+   TRACK
+========================================================= */
+
+.track {
+  position: relative;
+
+  height: 44px;
+
+  margin-bottom: 4px;
+
+  background: #15191f;
 
   border-top:
-    1px solid var(--line);
+    1px solid #1f242b;
 
-  display: flex;
-
-  flex-direction: column;
+  border-bottom:
+    1px solid #1f242b;
 }
 
-.tlTop {
-  height: 28px;
 
-  display: flex;
+.trackLabel {
+  position: sticky;
+
+  left: 4px;
+
+  z-index: 15;
+
+  display: inline-flex;
 
   align-items: center;
-  justify-content: center;
 
-  gap: 16px;
+  height: 100%;
 
-  font-size: 9px;
+  padding:
+    0
+    4px;
 
-  color: var(--sub);
+  color: #68717c;
+
+  font-size: 6px;
+
+  pointer-events: none;
 }
 
-.tlTop button {
-  background: #262c34;
+
+.trackClips {
+  position: absolute;
+
+  inset: 0;
+}
+
+
+/* =========================================================
+   MAIN VIDEO TRACK
+========================================================= */
+
+.mainTrack {
+  height: 52px;
+
+  background: #14191e;
+}
+
+
+/* =========================================================
+   OVERLAY TRACK
+========================================================= */
+
+.overlayTrack {
+  height: 34px;
+
+  background: #12161b;
+}
+
+
+.audioTrack {
+  height: 34px;
+
+  background: #11161a;
+}
+
+
+/* =========================================================
+   TIMELINE CLIP
+========================================================= */
+
+.timelineClip {
+  position: absolute;
+
+  top: 2px;
+  bottom: 2px;
+
+  min-width: 20px;
+
+  overflow: hidden;
+
+  border:
+    1px solid #64707d;
 
   border-radius: 5px;
 
-  width: 25px;
+  background: var(--clip);
+
+  touch-action: none;
+
+  user-select: none;
 }
 
 
-/* =====================================================
-   TIMELINE SCROLL
-===================================================== */
-
-.tlScroll {
-  flex: 1;
-
-  overflow: auto;
-
-  scrollbar-width: none;
-
-  touch-action: pan-x pan-y;
+.timelineClip.video {
+  background: var(--video);
 }
 
-.tlScroll::-webkit-scrollbar {
-  display: none;
+
+.timelineClip.pip {
+  background: var(--pip);
 }
 
-#tlContent {
-  position: relative;
 
-  min-height: 100%;
+.timelineClip.text {
+  background: var(--textclip);
+}
 
-  padding:
-    22px
+
+.timelineClip.audio {
+  background: var(--audio);
+}
+
+
+.timelineClip.selected {
+  border:
+    2px solid var(--accent);
+
+  box-shadow:
+    0 0 0 1px #0008;
+}
+
+
+/* =========================================================
+   VIDEO THUMBNAILS
+========================================================= */
+
+.clipThumbnails {
+  position: absolute;
+
+  inset: 0;
+
+  display: flex;
+
+  overflow: hidden;
+
+  opacity: .9;
+
+  pointer-events: none;
+}
+
+
+.clipThumb {
+  flex:
     0
-    15px;
+    0
+    52px;
+
+  height: 100%;
+
+  object-fit: cover;
+
+  border-right:
+    1px solid #0004;
 }
 
 
-/* =====================================================
-   TIMELINE RULER
-===================================================== */
+/* =========================================================
+   CLIP NAME
+========================================================= */
 
-#ruler {
+.clipName {
   position: absolute;
 
-  left: 0;
-  right: 0;
-  top: 0;
+  left: 8px;
+  top: 50%;
 
-  height: 20px;
+  transform:
+    translateY(-50%);
 
-  border-bottom:
-    1px solid #343a43;
-
-  background:
-    repeating-linear-gradient(
-      to right,
-      transparent 0,
-      transparent 49px,
-      #4a515c 50px
+  max-width:
+    calc(
+      100% -
+      16px
     );
+
+  overflow: hidden;
+
+  white-space: nowrap;
+
+  text-overflow: ellipsis;
+
+  color: #fff;
+
+  font-size: 8px;
+
+  text-shadow:
+    0 1px 3px #000;
 }
 
 
-/* =====================================================
-   PLAYHEAD
-===================================================== */
+/* =========================================================
+   TRIM HANDLES
+========================================================= */
 
-#playhead {
+.trimHandle {
   position: absolute;
 
-  top: 15px;
+  top: -1px;
+  bottom: -1px;
+
+  width: 14px;
+
+  z-index: 20;
+
+  display: none;
+
+  background: #fff;
+}
+
+
+.timelineClip.selected
+.trimHandle {
+  display: block;
+}
+
+
+.trimHandle.left {
+  left: -1px;
+
+  border-radius:
+    5px
+    0
+    0
+    5px;
+}
+
+
+.trimHandle.right {
+  right: -1px;
+
+  border-radius:
+    0
+    5px
+    5px
+    0;
+}
+
+
+.trimHandle::after {
+  content: "";
+
+  position: absolute;
+
+  top: 50%;
+  left: 50%;
+
+  width: 2px;
+  height: 12px;
+
+  transform:
+    translate(
+      -50%,
+      -50%
+    );
+
+  border-radius: 2px;
+
+  background: #555;
+}
+
+
+/* =========================================================
+   KEYFRAME MARKER
+========================================================= */
+
+.keyframeMarker {
+  position: absolute;
+
+  top: 50%;
+
+  width: 8px;
+  height: 8px;
+
+  transform:
+    translate(
+      -50%,
+      -50%
+    )
+    rotate(45deg);
+
+  border:
+    1px solid #fff;
+
+  background: var(--accent);
+
+  z-index: 12;
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   FIXED PLAYHEAD
+========================================================= */
+
+.fixedPlayhead {
+  position: absolute;
+
+  left: 50%;
+
+  top: 29px;
   bottom: 0;
 
   width: 1px;
 
-  background: #fff;
+  transform:
+    translateX(-50%);
 
   z-index: 100;
 
   pointer-events: none;
 }
 
-#playhead i {
+
+.playheadLine {
   position: absolute;
 
-  top: -4px;
-  left: -5px;
+  top: 9px;
+  bottom: 0;
 
-  width: 11px;
-  height: 11px;
+  left: 0;
+
+  width: 1px;
 
   background: #fff;
 
-  border-radius: 3px;
+  box-shadow:
+    0 0 2px #000;
 }
 
 
-/* =====================================================
-   TRACK
-===================================================== */
+.playheadHead {
+  position: absolute;
 
-.track {
-  position: relative;
+  left: -6px;
+  top: 2px;
 
-  height: 38px;
+  width: 13px;
+  height: 13px;
 
-  margin:
+  border-radius:
+    3px
+    3px
     5px
-    0;
+    5px;
 
-  background: #181c22;
+  background: #fff;
 }
 
 
-/* =====================================================
-   CLIP
-===================================================== */
+/* =========================================================
+   BOTTOM TOOLBAR
+========================================================= */
 
-.clip {
-  position: absolute;
-
-  height: 100%;
-
-  border:
-    1px solid #66707e;
-
-  border-radius: 5px;
-
-  background: #37404d;
-
-  overflow: hidden;
-
-  font-size: 9px;
-
-  display: flex;
-
-  align-items: center;
-
-  padding:
-    0
-    10px;
-
-  white-space: nowrap;
-}
-
-.clip.video {
-  background: #334852;
-}
-
-.clip.text {
-  background: #4d405c;
-}
-
-.clip.selected {
-  border:
-    2px solid var(--a);
-}
-
-
-/* =====================================================
-   TRIM HANDLES
-===================================================== */
-
-.trimHandle {
-  position: absolute;
-
-  top: 0;
-  bottom: 0;
-
-  width: 12px;
-
-  background: #ffffffcc;
-
-  z-index: 2;
-
-  touch-action: none;
-}
-
-.trimHandle.l {
-  left: 0;
-}
-
-.trimHandle.r {
-  right: 0;
-}
-
-
-/* =====================================================
-   TOOLBARS
-===================================================== */
-
-.bar {
+.bottomToolbar {
   height:
     calc(
-      68px +
+      var(--toolbar-h)
+      +
       env(safe-area-inset-bottom)
     );
+
+  flex-shrink: 0;
 
   display: flex;
 
   align-items: flex-start;
 
+  gap: 2px;
+
   overflow-x: auto;
-
-  background: #15181e;
-
-  border-top:
-    1px solid var(--line);
 
   padding:
     4px
     4px
     env(safe-area-inset-bottom);
 
+  background: #15181e;
+
+  border-top:
+    1px solid #2c3139;
+
   scrollbar-width: none;
+
+  z-index: 200;
 }
 
-.bar::-webkit-scrollbar {
+
+.bottomToolbar::-webkit-scrollbar {
   display: none;
 }
 
-.bar > * {
+
+.toolButton {
   flex:
     0
     0
-    67px;
+    68px;
 
-  height: 58px;
+  height: 60px;
 
   display: flex;
 
@@ -854,48 +1464,52 @@ button {
 
   border-radius: 8px;
 
+  color: #f5f5f6;
+}
+
+
+.toolButton:active {
+  background: #292e37;
+}
+
+
+.toolIcon {
+  min-height: 24px;
+
+  display: grid;
+
+  place-items: center;
+
   font-size: 20px;
-
-  user-select: none;
-}
-
-.bar > *:active {
-  background: #272c35;
-}
-
-.bar span {
-  font-size: 9px;
-}
-
-.bar .danger {
-  color: #ff6875;
 }
 
 
-/* =====================================================
-   BOTTOM SHEET
-===================================================== */
+.toolButton span {
+  font-size: 8px;
+}
 
-#sheet {
+
+.toolButton.danger {
+  color: #ff6a79;
+}
+
+
+/* =========================================================
+   EDIT SHEET
+========================================================= */
+
+.editSheet {
   position: fixed;
-
-  z-index: 500;
 
   left: 0;
   right: 0;
   bottom: 0;
 
-  max-height: 60vh;
+  z-index: 1000;
 
-  overflow: auto;
+  max-height: 62vh;
 
-  background: #1a1e25;
-
-  border-radius:
-    18px
-    18px
-    0
-    0;
+  overflow-y: auto;
 
   padding:
     7px
@@ -905,99 +1519,143 @@ button {
       env(safe-area-inset-bottom)
     );
 
+  border-radius:
+    18px
+    18px
+    0
+    0;
+
+  background: #1a1e25;
+
   box-shadow:
-    0 -12px 35px #0009;
+    0 -14px 40px #000a;
 }
 
-.handle {
+
+.sheetHandle {
   width: 38px;
   height: 4px;
-
-  background: #555e6a;
-
-  border-radius: 9px;
 
   margin:
     0
     auto
     8px;
+
+  border-radius: 10px;
+
+  background: #59616d;
 }
 
 
-/* =====================================================
-   SHEET HEADER
-===================================================== */
+.sheetHeader {
+  height: 38px;
 
-.sheetHead {
   display: flex;
 
   align-items: center;
 }
 
-.sheetHead b {
+
+.sheetHeader b {
   flex: 1;
+
+  text-align: center;
+
+  font-size: 12px;
 }
 
-.sheetHead button {
-  font-size: 22px;
+
+.sheetHeaderButton {
+  width: 34px;
+  height: 34px;
+
+  display: grid;
+
+  place-items: center;
+
+  border-radius: 8px;
+
+  background: #262c35;
 }
 
 
-/* =====================================================
-   OPTION BUTTONS
-===================================================== */
+.sheetHeaderButton.apply {
+  color: #ff7182;
+}
 
-.options {
+
+.sheetContent {
+  padding-top: 10px;
+}
+
+
+/* =========================================================
+   SHEET OPTIONS
+========================================================= */
+
+.optionRow {
   display: flex;
 
   gap: 8px;
 
-  overflow: auto;
+  overflow-x: auto;
 
   padding:
-    12px
+    8px
     0;
+
+  scrollbar-width: none;
 }
 
-.options button {
-  min-width: 76px;
+
+.optionRow::-webkit-scrollbar {
+  display: none;
+}
+
+
+.optionButton {
+  min-width: 78px;
 
   padding:
     12px
     8px;
 
+  border-radius: 9px;
+
   background: #2a3039;
 
-  border-radius: 9px;
+  font-size: 10px;
 }
 
 
-/* =====================================================
-   FIELDS
-===================================================== */
+.optionButton.active {
+  background: var(--accent);
+}
 
-.fields {
+
+/* =========================================================
+   PROPERTY GRID
+========================================================= */
+
+.propertyGrid {
   display: grid;
 
   grid-template-columns:
     1fr 1fr;
 
   gap: 10px;
-
-  padding:
-    10px
-    0;
 }
 
-.fields label {
-  font-size: 10px;
 
-  color: #aab1ba;
+.propertyGrid label {
+  color: #a8afb8;
+
+  font-size: 9px;
 }
 
-.fields input,
-.fields select,
-.fields textarea {
+
+.propertyGrid input,
+.propertyGrid select {
   display: block;
 
   width: 100%;
@@ -1007,58 +1665,348 @@ button {
   padding: 9px;
 
   border:
-    1px solid #3b424d;
+    1px solid #3a424d;
 
   border-radius: 8px;
+
+  outline: none;
 
   background: #11151a;
 
   color: #fff;
 }
 
-.fields textarea {
-  min-height: 80px;
 
-  resize: vertical;
-}
-
-.fields input[type="range"] {
+.propertyGrid input[type="range"] {
   padding: 0;
 
-  accent-color: var(--a);
+  accent-color: var(--accent);
 }
 
-.wide {
+
+.propertyWide {
   grid-column:
     1 / -1;
 }
 
 
-/* =====================================================
-   TOAST
-===================================================== */
+/* =========================================================
+   TEXT EDITOR
+========================================================= */
 
-#toast {
+.modalEditor {
   position: fixed;
 
-  z-index: 9999;
+  inset: 0;
+
+  z-index: 1500;
+
+  display: flex;
+
+  flex-direction: column;
+
+  background: #111419;
+}
+
+
+.modalHeader {
+  min-height:
+    calc(
+      50px +
+      env(safe-area-inset-top)
+    );
+
+  padding:
+    calc(
+      7px +
+      env(safe-area-inset-top)
+    )
+    10px
+    7px;
+
+  display: flex;
+
+  align-items: flex-end;
+
+  border-bottom:
+    1px solid #2b3139;
+}
+
+
+.modalHeader b {
+  flex: 1;
+
+  text-align: center;
+}
+
+
+.modalHeader button {
+  width: 38px;
+  height: 36px;
+
+  border-radius: 8px;
+
+  background: #262c35;
+}
+
+
+.textInputArea {
+  flex: 1;
+
+  padding: 18px;
+}
+
+
+#textInput {
+  width: 100%;
+  height: 100%;
+
+  resize: none;
+
+  padding: 16px;
+
+  border:
+    1px solid #343b45;
+
+  border-radius: 12px;
+
+  outline: none;
+
+  background: #0c0f13;
+
+  color: #fff;
+
+  font-size: 24px;
+}
+
+
+.textControls {
+  padding:
+    12px
+    15px
+    calc(
+      18px +
+      env(safe-area-inset-bottom)
+    );
+
+  border-top:
+    1px solid #2b3139;
+
+  background: #171b21;
+}
+
+
+.textControls label {
+  display: block;
+
+  margin-bottom: 12px;
+
+  color: #a8afb8;
+
+  font-size: 9px;
+}
+
+
+.textControls input {
+  width: 100%;
+
+  margin-top: 5px;
+
+  accent-color: var(--accent);
+}
+
+
+/* =========================================================
+   ANIMATION PANEL
+========================================================= */
+
+.animationTabs {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, 1fr);
+
+  gap: 5px;
+
+  margin:
+    7px
+    0
+    12px;
+}
+
+
+.animationTabs button {
+  padding:
+    9px
+    5px;
+
+  border-radius: 8px;
+
+  background: #272d36;
+
+  color: #b3bac3;
+
+  font-size: 9px;
+}
+
+
+.animationTabs button.active {
+  background: var(--accent);
+
+  color: #fff;
+}
+
+
+.animationList {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(0, 1fr)
+    );
+
+  gap: 8px;
+}
+
+
+.animationItem {
+  min-height: 66px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 5px;
+
+  border-radius: 10px;
+
+  background: #272d35;
+
+  font-size: 18px;
+}
+
+
+.animationItem span {
+  font-size: 8px;
+
+  color: #c4c8ce;
+}
+
+
+.animationItem.active {
+  outline:
+    2px solid var(--accent);
+}
+
+
+.animationSettings {
+  margin-top: 14px;
+
+  padding-top: 12px;
+
+  border-top:
+    1px solid #303640;
+}
+
+
+.animationSettings label {
+  display: block;
+
+  margin-bottom: 12px;
+
+  color: #aab1ba;
+
+  font-size: 9px;
+}
+
+
+.animationSettings input {
+  width: 100%;
+
+  accent-color: var(--accent);
+}
+
+
+/* =========================================================
+   CONTEXT MENU
+========================================================= */
+
+.contextMenu {
+  position: fixed;
+
+  z-index: 3000;
+
+  min-width: 130px;
+
+  overflow: hidden;
+
+  border:
+    1px solid #373e48;
+
+  border-radius: 10px;
+
+  background: #20252d;
+
+  box-shadow:
+    0 10px 35px #000a;
+}
+
+
+.contextMenu button {
+  display: block;
+
+  width: 100%;
+
+  padding:
+    11px
+    14px;
+
+  text-align: left;
+
+  border-bottom:
+    1px solid #303640;
+
+  font-size: 10px;
+}
+
+
+.contextMenu button:last-child {
+  border-bottom: 0;
+}
+
+
+.contextMenu .danger {
+  color: #ff6979;
+}
+
+
+/* =========================================================
+   TOAST
+========================================================= */
+
+.toast {
+  position: fixed;
 
   left: 50%;
 
   bottom:
     calc(
-      85px +
+      84px +
       env(safe-area-inset-bottom)
     );
 
-  transform:
-    translateX(-50%);
+  z-index: 5000;
 
   display: none;
 
   max-width: 90vw;
 
-  background: #050608e8;
+  transform:
+    translateX(-50%);
 
   padding:
     9px
@@ -1066,68 +2014,132 @@ button {
 
   border-radius: 9px;
 
-  font-size: 11px;
+  background: #050608e8;
+
+  box-shadow:
+    0 8px 25px #0009;
 
   white-space: nowrap;
 
-  box-shadow:
-    0 8px 24px #0008;
+  color: #fff;
+
+  font-size: 10px;
 }
 
 
-/* =====================================================
-   PHONE
-===================================================== */
+/* =========================================================
+   HIDDEN
+========================================================= */
 
-@media (max-width: 600px) {
+[hidden] {
+  display: none !important;
+}
 
-  .projects {
+
+/* =========================================================
+   SMALL PHONE
+========================================================= */
+
+@media (
+  max-width: 600px
+) {
+
+  .homeContent {
+    padding-left: 13px;
+    padding-right: 13px;
+  }
+
+
+  .projectGrid {
     grid-template-columns:
       1fr 1fr;
   }
 
-  .homeMain {
-    padding: 14px;
+
+  .timelineArea {
+    height: 214px;
+  }
+
+
+  .toolButton {
+    flex-basis: 65px;
   }
 
 }
 
 
-/* =====================================================
-   LANDSCAPE / iPAD
-===================================================== */
+/* =========================================================
+   IPAD / LANDSCAPE
+========================================================= */
 
-@media (orientation: landscape) {
+@media (
+  orientation: landscape
+) {
 
-  .workspace {
+  .editorBody {
     flex-direction: row;
   }
 
-  .preview {
+
+  .previewArea {
     flex: 1;
+
+    min-width: 0;
   }
 
-  .timeline {
+
+  .timelineArea {
+    width: 44%;
     height: auto;
 
-    width: 43%;
+    border-top: 0;
 
     border-left:
-      1px solid var(--line);
-
-    border-top: 0;
+      1px solid #2c323b;
   }
 
-  #stage {
+
+  #canvas {
+    width: auto;
+
     height:
       min(
-        65vh,
-        calc(
-          100vw * .39
-        )
+        66vh,
+        74%
       );
+  }
 
-    width: auto;
+}
+
+
+/* =========================================================
+   LARGE IPAD
+========================================================= */
+
+@media (
+  min-width: 900px
+)
+and
+(
+  orientation: portrait
+) {
+
+  #canvas {
+    width:
+      min(
+        39vh,
+        70vw
+      );
+  }
+
+
+  .timelineArea {
+    height: 245px;
+  }
+
+
+  .bottomToolbar {
+    justify-content: center;
   }
 
 }
