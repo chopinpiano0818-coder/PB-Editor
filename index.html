@@ -1,25 +1,27 @@
 <!doctype html>
 <html lang="ja">
 <head>
-  <meta charset="utf-8">
-  <meta
-    name="viewport"
-    content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no"
-  >
-  <title>PB Editor v0.3</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>PB Editor v1.0 Base</title>
+<link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
 <header>
-  <b>PB Editor <small>v0.3</small></b>
+  <button id="back">‹</button>
+
+  <b>
+    PB Editor
+    <small>v1.0 Base</small>
+  </b>
 
   <div>
     <button id="undo">↶</button>
     <button id="redo">↷</button>
     <button id="save">保存</button>
-    <button id="export">動画</button>
+    <button id="export">書き出し</button>
   </div>
 </header>
 
@@ -28,21 +30,13 @@
 
   <section class="preview">
 
-    <div id="wrap">
-
-      <div id="stage">
-
-        <i id="gv"></i>
-        <i id="gh"></i>
-
-      </div>
-
+    <div id="viewer">
+      <div id="stage"></div>
     </div>
-
 
     <div class="transport">
 
-      <button id="play">▶︎</button>
+      <button id="play">▶</button>
 
       <span id="clock">
         00:00.00 / 00:10.00
@@ -53,6 +47,7 @@
         type="range"
         min="0"
         max="10"
+        value="0"
         step=".01"
       >
 
@@ -62,220 +57,141 @@
 
 
   <section class="timeline">
-
-    <div class="tlhead">
-
-      タイムライン
-
-      <label>
-        長さ
-
-        <input
-          id="duration"
-          type="number"
-          value="10"
-          min="1"
-          max="600"
-          step=".1"
-        >
-
-        秒
-      </label>
-
-    </div>
-
     <div id="tracks"></div>
-
   </section>
 
 </main>
 
 
-<nav id="mainTools">
+<nav id="toolbar">
 
-  <label class="btn">
-
-    ＋PIP
+  <label class="tool">
+    ＋
+    <span>素材</span>
 
     <input
-      id="files"
+      id="media"
       type="file"
-      accept="image/*,video/*,.svg"
+      accept="image/*,video/*"
       multiple
       hidden
     >
-
   </label>
 
-  <button id="addText">
-    文字
+
+  <button
+    class="tool"
+    data-tool="canvas"
+  >
+    ▣
+    <span>キャンバス</span>
   </button>
 
-  <button id="aspect">
-    9:16
+
+  <button
+    class="tool"
+    data-tool="text"
+  >
+    T
+    <span>テキスト</span>
+  </button>
+
+
+  <button
+    class="tool"
+    data-tool="pip"
+  >
+    ◫
+    <span>PIP</span>
+  </button>
+
+
+  <button
+    class="tool"
+    data-tool="filter"
+  >
+    ◐
+    <span>調整</span>
   </button>
 
 </nav>
 
 
-<div id="selectionBar" hidden>
+<div
+  id="clipbar"
+  hidden
+>
 
-  <button data-act="edit">
-    詳細
+  <button data-action="split">
+    ✂
+    <span>分割</span>
   </button>
 
-  <button data-act="key">
-    ◇キー
+  <button data-action="trim">
+    ↔
+    <span>トリム</span>
   </button>
 
-  <button data-act="anim">
-    アニメ
+  <button data-action="speed">
+    1×
+    <span>速度</span>
   </button>
 
-  <button data-act="center">
-    中央
+  <button data-action="volume">
+    🔊
+    <span>音量</span>
   </button>
 
-  <button data-act="dup">
-    複製
+  <button data-action="rotate">
+    ↻
+    <span>回転</span>
   </button>
 
-  <button data-act="del">
-    削除
+  <button data-action="flip">
+    ⇆
+    <span>反転</span>
+  </button>
+
+  <button data-action="duplicate">
+    ▣
+    <span>複製</span>
+  </button>
+
+  <button data-action="key">
+    ◇
+    <span>キー</span>
+  </button>
+
+  <button data-action="delete">
+    ⌫
+    <span>削除</span>
   </button>
 
 </div>
 
 
-<aside id="panel" hidden>
+<section
+  id="sheet"
+  hidden
+>
 
-  <div class="top">
+  <div class="sheetHead">
 
-    <b id="pname"></b>
+    <b id="sheetTitle"></b>
 
-    <button id="close">
+    <button id="sheetClose">
       ×
     </button>
 
   </div>
 
+  <div id="sheetBody"></div>
 
-  <div id="textOpts" hidden>
-
-    <label>
-      文字
-      <input id="txt">
-    </label>
-
-    <label>
-      サイズ
-      <input id="fs" type="number">
-    </label>
-
-    <label>
-      色
-      <input id="color" type="color">
-    </label>
-
-  </div>
-
-
-  <div class="grid">
-
-    <label>
-      X
-      <input id="x" type="number" step=".1">
-    </label>
-
-    <label>
-      Y
-      <input id="y" type="number" step=".1">
-    </label>
-
-    <label>
-      幅
-      <input id="w" type="number">
-    </label>
-
-    <label>
-      高さ
-      <input id="h" type="number">
-    </label>
-
-    <label>
-      回転
-      <input id="r" type="number" step=".1">
-    </label>
-
-    <label>
-      透明度
-      <input id="o" type="number">
-    </label>
-
-    <label>
-      開始
-      <input id="start" type="number" step=".01">
-    </label>
-
-    <label>
-      終了
-      <input id="end" type="number" step=".01">
-    </label>
-
-    <label>
-      イージング
-
-      <select id="ease">
-        <option>linear</option>
-        <option>ease</option>
-        <option>in</option>
-        <option>out</option>
-        <option>back</option>
-      </select>
-
-    </label>
-
-  </div>
-
-</aside>
-
-
-<div id="animSheet" hidden>
-
-  <b>アニメーション</b>
-
-  <div>
-
-    <button data-a="pop">
-      ポップ
-    </button>
-
-    <button data-a="slide">
-      スライド
-    </button>
-
-    <button data-a="bounce">
-      バウンド
-    </button>
-
-    <button data-a="shake">
-      震える
-    </button>
-
-    <button data-a="squash">
-      ぷるん
-    </button>
-
-  </div>
-
-  <button id="animClose">
-    閉じる
-  </button>
-
-</div>
+</section>
 
 
 <div id="toast"></div>
+
 
 <script src="app.js"></script>
 
