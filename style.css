@@ -3,14 +3,18 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+
 html,
 body {
   margin: 0;
+
   height: 100%;
+
   overflow: hidden;
 
-  background: #0d0f13;
-  color: #f5f6f7;
+  background: #0b0d11;
+
+  color: #f7f7f8;
 
   font-family:
     -apple-system,
@@ -19,64 +23,99 @@ body {
     sans-serif;
 }
 
+
 button,
-.btn,
+.tool,
 input,
 select {
   font: inherit;
 }
 
-button,
-.btn {
-  border: 0;
-  border-radius: 9px;
 
-  background: #252a33;
+button,
+.tool {
+  border: 0;
+
   color: #fff;
 
-  padding: 9px 11px;
+  background: transparent;
 }
 
 
-/* ヘッダー */
+/* =========================
+   HEADER
+========================= */
 
 header {
   height: 52px;
 
   display: flex;
+
   align-items: center;
-  justify-content: space-between;
 
-  padding: 0 10px;
+  gap: 8px;
 
-  background: #111318;
+  padding: 0 8px;
+
+  background: #12151a;
+
+  border-bottom:
+    1px solid #292d34;
 }
 
-header div {
+
+header > b {
+  flex: 1;
+}
+
+
+header > div {
   display: flex;
-  gap: 5px;
+
+  gap: 4px;
 }
+
 
 header button {
-  padding: 7px 9px;
+  padding: 7px 8px;
+
+  border-radius: 8px;
+
+  background: #232831;
 }
+
+
+header #export {
+  background: #ed5266;
+}
+
 
 small {
-  color: #9da5b2;
+  font-size: 10px;
+
+  color: #9098a4;
 }
 
 
-/* メイン */
+/* =========================
+   MAIN
+========================= */
 
 main {
-  height: calc(100dvh - 113px);
+  height:
+    calc(
+      100dvh - 118px
+    );
 
   display: flex;
+
   flex-direction: column;
 }
 
 
-/* プレビュー */
+/* =========================
+   PREVIEW
+========================= */
 
 .preview {
   min-height: 0;
@@ -84,362 +123,430 @@ main {
   flex: 1;
 
   display: flex;
+
   flex-direction: column;
 }
 
-#wrap {
+
+#viewer {
   min-height: 0;
 
   flex: 1;
 
   display: grid;
+
   place-items: center;
 
-  padding: 8px;
+  background: #07080a;
 
-  background: #08090c;
+  padding: 8px;
 }
 
 
-/* 編集画面 */
+/* =========================
+   CANVAS
+========================= */
 
 #stage {
   position: relative;
 
-  width: min(42.2vh, 92vw);
+  width:
+    min(
+      42vh,
+      90vw
+    );
 
-  aspect-ratio: 9 / 16;
+  aspect-ratio:
+    9 / 16;
 
-  background: #fff;
+  background: #111;
 
   overflow: hidden;
 
   touch-action: none;
+
+  box-shadow:
+    0 0 0 1px #30343c;
 }
 
 
-/* PIP */
+/* =========================
+   LAYERS / PIP
+========================= */
 
-.pip {
+.layer {
   position: absolute;
 
   left: 0;
+
   top: 0;
 
-  transform-origin: center;
+  transform-origin:
+    center;
+
+  touch-action: none;
 
   user-select: none;
-  touch-action: none;
 
   will-change:
     transform,
     opacity;
 }
 
-.pip img,
-.pip video {
-  width: 100%;
-  height: 100%;
 
+.layer img,
+.layer video {
   display: block;
 
-  object-fit: contain;
+  width: 100%;
+
+  height: 100%;
+
+  object-fit: cover;
 
   pointer-events: none;
 }
 
-.pip.text {
+
+.layer.text {
   display: grid;
 
   place-items: center;
 
-  font-weight: 800;
-
   white-space: nowrap;
-}
 
-.pip.selected {
-  outline: 2px solid #58a6ff;
-}
-
-
-/* ガイド線 */
-
-#gv,
-#gh {
-  position: absolute;
-
-  background: #ff4da6;
-
-  z-index: 999;
-
-  display: none;
-}
-
-#gv {
-  left: 50%;
-  top: 0;
-  bottom: 0;
-
-  width: 1px;
-}
-
-#gh {
-  top: 50%;
-  left: 0;
-  right: 0;
-
-  height: 1px;
+  font-weight: 700;
 }
 
 
-/* 再生バー */
+.layer.selected {
+  outline:
+    2px solid white;
+
+  outline-offset:
+    2px;
+}
+
+
+/* =========================
+   PLAY CONTROLS
+========================= */
 
 .transport {
-  height: 44px;
+  height: 42px;
 
   display: flex;
+
   align-items: center;
 
   gap: 7px;
 
-  padding: 5px 8px;
+  padding: 4px 8px;
 
-  background: #171a20;
+  background: #15181e;
 }
 
+
+.transport input {
+  flex: 1;
+
+  min-width: 0;
+}
+
+
 .transport span {
-  font-size: 11px;
+  font-size: 10px;
+
+  white-space: nowrap;
+
+  font-variant-numeric:
+    tabular-nums;
+}
+
+
+/* =========================
+   TIMELINE
+========================= */
+
+.timeline {
+  height: 155px;
+
+  background: #101318;
+
+  overflow: auto;
+
+  padding: 8px;
+}
+
+
+.track {
+  height: 35px;
+
+  margin-bottom: 5px;
+
+  position: relative;
+
+  background: #191d24;
+
+  border-radius: 5px;
+}
+
+
+.clip {
+  height: 100%;
+
+  position: absolute;
+
+  border:
+    1px solid #596271;
+
+  background: #343c49;
+
+  border-radius: 5px;
+
+  padding: 8px;
+
+  font-size: 10px;
+
+  overflow: hidden;
 
   white-space: nowrap;
 }
 
-.transport input {
-  min-width: 0;
+
+.clip.selected {
+  border:
+    2px solid #ed5266;
+}
+
+
+.clip.video {
+  background: #344650;
+}
+
+
+.clip.text {
+  background: #493d58;
+}
+
+
+/* =========================
+   MAIN TOOLBAR
+========================= */
+
+nav,
+#clipbar {
+  height: 66px;
+
+  display: flex;
+
+  align-items: stretch;
+
+  gap: 2px;
+
+  padding: 4px;
+
+  background: #15181e;
+
+  border-top:
+    1px solid #292d34;
+
+  overflow-x: auto;
+}
+
+
+nav > *,
+#clipbar > * {
+  min-width: 65px;
 
   flex: 1;
 }
 
 
-/* タイムライン */
-
-.timeline {
-  height: 140px;
-
-  padding: 7px;
-
-  background: #12151a;
-
-  overflow: auto;
-}
-
-.tlhead {
+.tool,
+#clipbar button {
   display: flex;
 
-  justify-content: space-between;
-
-  font-size: 12px;
-
-  color: #9da5b2;
-
-  margin-bottom: 6px;
-}
-
-.tlhead input {
-  width: 55px;
-}
-
-.track {
-  height: 31px;
-
-  background: #1c2027;
-
-  border-radius: 6px;
-
-  margin-bottom: 5px;
-
-  position: relative;
-}
-
-.clip {
-  position: absolute;
-
-  height: 100%;
-
-  background: #38414f;
-
-  border: 1px solid #6c7889;
-
-  border-radius: 6px;
-
-  padding: 6px;
-
-  font-size: 11px;
-
-  overflow: hidden;
-}
-
-.clip.selected {
-  outline: 2px solid #58a6ff;
-}
-
-
-/* 下部ツール */
-
-nav,
-#selectionBar {
-  height: 61px;
-
-  display: flex;
+  flex-direction: column;
 
   align-items: center;
 
-  gap: 7px;
+  justify-content: center;
 
-  padding: 8px;
+  gap: 3px;
 
-  background: #15181e;
+  font-size: 20px;
+
+  border-radius: 7px;
+}
+
+
+.tool span,
+#clipbar span {
+  font-size: 9px;
+}
+
+
+/* =========================
+   SELECTED CLIP TOOLBAR
+========================= */
+
+#clipbar {
+  position: fixed;
+
+  bottom: 0;
+
+  left: 0;
+
+  right: 0;
+
+  z-index: 40;
+}
+
+
+/* =========================
+   BOTTOM SHEET
+========================= */
+
+#sheet {
+  position: fixed;
+
+  left: 0;
+
+  right: 0;
+
+  bottom: 0;
+
+  z-index: 80;
+
+  max-height: 52vh;
+
+  overflow: auto;
+
+  background: #1a1e25;
+
+  border-radius:
+    16px 16px 0 0;
+
+  padding: 12px;
+
+  box-shadow:
+    0 -10px 30px #0008;
+}
+
+
+.sheetHead {
+  display: flex;
+
+  justify-content:
+    space-between;
+
+  align-items: center;
+
+  margin-bottom: 12px;
+}
+
+
+.sheetHead button {
+  font-size: 22px;
+}
+
+
+/* =========================
+   OPTION BUTTONS
+========================= */
+
+.options {
+  display: flex;
+
+  gap: 8px;
 
   overflow-x: auto;
 }
 
-#selectionBar {
-  position: fixed;
 
-  left: 0;
-  right: 0;
-  bottom: 0;
+.options button {
+  min-width: 78px;
 
-  z-index: 900;
+  padding: 13px 8px;
+
+  background: #292f39;
+
+  border-radius: 9px;
 }
 
 
-/* 詳細設定 */
+/* =========================
+   FORM FIELDS
+========================= */
 
-aside {
-  position: fixed;
-
-  right: 8px;
-  bottom: 70px;
-
-  width:
-    min(
-      390px,
-      calc(100vw - 16px)
-    );
-
-  max-height: 65vh;
-
-  overflow: auto;
-
-  z-index: 1000;
-
-  background: #181c22;
-
-  border: 1px solid #3a414d;
-
-  border-radius: 12px;
-
-  padding: 10px;
-}
-
-.top {
-  display: flex;
-
-  justify-content: space-between;
-}
-
-.grid,
-#textOpts {
+.fields {
   display: grid;
 
   grid-template-columns:
     1fr 1fr;
 
-  gap: 7px;
-
-  margin-top: 8px;
+  gap: 8px;
 }
 
-.grid label,
-#textOpts label {
+
+.fields label {
   font-size: 11px;
 
-  color: #9da5b2;
+  color: #a2a9b3;
 }
 
-.grid input,
-.grid select,
-#textOpts input {
+
+.fields input,
+.fields select {
   display: block;
 
   width: 100%;
 
-  padding: 7px;
+  margin-top: 4px;
 
-  background: #0f1217;
+  padding: 9px;
+
+  border-radius: 7px;
+
+  border:
+    1px solid #3d4551;
+
+  background: #11151b;
 
   color: #fff;
-
-  border: 1px solid #3b424d;
-
-  border-radius: 6px;
 }
 
 
-/* アニメーション */
-
-#animSheet {
-  position: fixed;
-
-  left: 8px;
-  right: 8px;
-  bottom: 70px;
-
-  z-index: 1100;
-
-  background: #181c22;
-
-  border-radius: 13px;
-
-  padding: 12px;
-}
-
-#animSheet div {
-  display: flex;
-
-  gap: 7px;
-
-  overflow: auto;
-
-  margin: 10px 0;
-}
-
-
-/* 通知 */
+/* =========================
+   TOAST
+========================= */
 
 #toast {
   position: fixed;
 
   left: 50%;
-  bottom: 75px;
+
+  bottom: 80px;
 
   transform:
     translateX(-50%);
 
-  background: #111e;
+  z-index: 200;
+
+  background: #000d;
 
   padding: 9px 14px;
 
   border-radius: 9px;
 
   display: none;
-
-  z-index: 2000;
 }
 
 
-/* iPad横向き */
+/* =========================
+   iPad LANDSCAPE
+========================= */
 
 @media (orientation: landscape) {
 
@@ -447,22 +554,29 @@ aside {
     flex-direction: row;
   }
 
+
   .preview {
     flex: 1;
   }
 
+
   .timeline {
-    width: 40%;
     height: auto;
+
+    width: 42%;
   }
+
 
   #stage {
     height:
       min(
-        62vh,
-        calc(100vw * 0.44)
+        65vh,
+        calc(
+          100vw * 0.42
+        )
       );
 
     width: auto;
   }
+
 }
